@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -15,11 +16,19 @@ public class PlayerController : MonoBehaviour
 
     Coordinate currentCoordinate = new Coordinate(0, 0);
 
-
-
     private void Start()
     {
         ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
+    }
+    private void Update()
+    {
+        Coordinate nextCoordinate = GetNextCoordinate();
+        print(nextCoordinate);
+
+        if (currentGrid.TryGetTile(nextCoordinate, out GameObject tile))
+        {
+            StartMove(nextCoordinate);
+        }
     }
 
     private void ChangeDirection(InputAction.CallbackContext context)
@@ -44,22 +53,10 @@ public class PlayerController : MonoBehaviour
 
         
     }
-
-    private void Update()
-    {
-        Coordinate nextCoordinate = GetNextCoordinate();
-
-        if (currentGrid.TryGetTile(nextCoordinate, out GameObject tile))
-        {
-            StartMove(nextCoordinate);
-        }
-    }
-
     Coordinate GetNextCoordinate()
     {
-        return new Coordinate(currentCoordinate.X + (int)currentDirection.x, currentCoordinate.Y + (int)currentDirection.y);
+        return new Coordinate(currentCoordinate.X + (int)currentDirection.x, currentCoordinate.Y + (int)Math.Round(currentDirection.y));
     }
-
     void StartMove(Coordinate nextCoordinate)
     {
         if (moveRoutine == null)
@@ -67,12 +64,10 @@ public class PlayerController : MonoBehaviour
             moveRoutine = StartCoroutine(Move(nextCoordinate));
         }
     }
-
     IEnumerator Move(Coordinate nextCoordinate)
     {
         float distanceMultiplier = Vector2.Distance(transform.position, new Vector2(nextCoordinate.X, nextCoordinate.Y));
         float speed = desiredSpeed * distanceMultiplier;
-        print(speed);
         float elapsedTime = 0;
 
         Vector2 startPos = transform.position;
