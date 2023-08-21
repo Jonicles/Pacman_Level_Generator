@@ -23,29 +23,29 @@ public class TileGrid : MonoBehaviour
             for (int j = 0; j < grid.GetLength(1); j++)
             {
                 GameObject newTile = Instantiate(tilePrefab, new Vector3(i, j), Quaternion.identity, tileParent.transform);
-                SetTile(i, j, newTile);
+                SetTile(new Coordinate(i,j), newTile);
             }
         }
     }
 
-    void SetTile(int xCoordinate, int yCoordinate, GameObject tile)
+    void SetTile(Coordinate coordinate, GameObject tile)
     {
         if (grid == null)
             Debug.LogWarning("Trying to set tile on an empty grid");
 
-        grid[xCoordinate, yCoordinate] = tile;
+        grid[coordinate.X, coordinate.Y] = tile;
     }
 
-    public bool TryGetTile(int xCoordinate, int yCoordinate, out GameObject tile)
+    public bool TryGetTile(Coordinate coordinate, out GameObject tile)
     {
-        bool outOfBounds = xCoordinate < 0 || xCoordinate > grid.GetLength(0) - 1 || yCoordinate < 0 || yCoordinate > grid.GetLength(1) - 1;
+        bool outOfBounds = coordinate.X < 0 || coordinate.X > grid.GetLength(0) - 1 || coordinate.Y < 0 || coordinate.Y > grid.GetLength(1) - 1;
         if (outOfBounds)
         {
             tile = null;
             return false;
         }
 
-        tile = grid[xCoordinate, yCoordinate];
+        tile = grid[coordinate.X, coordinate.Y];
         return true;
     }
 }

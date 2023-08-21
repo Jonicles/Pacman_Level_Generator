@@ -1,18 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
 
 public class PlayerController : MonoBehaviour
 {
-    int xCoordinate = 0;
-    int yCoordinate = 0;
-    Vector2 currentDirection = Vector2.zero;
-    float speed = 0.2f;
-    float currentTime = 0;
-
     [SerializeField] TileGrid currentGrid;
+    [SerializeField] float desiredSpeed = 0.1f;
+    Coroutine moveRoutine;
+
+    Vector2 currentDirection = Vector2.right;
+
+    Coordinate currentCoordinate = new Coordinate(0, 0);
+
+
 
     private void Start()
     {
@@ -24,29 +27,66 @@ public class PlayerController : MonoBehaviour
         currentDirection = context.ReadValue<Vector2>();
         currentDirection.Normalize();
 
+        if (moveRoutine != null)
+        {
+            Vector2 currentPos = transform.position;
+
+            Coordinate nextCoordinate = GetNextCoordinate();
+            float distanceToNextTile = Vector2.Distance(currentPos, new Vector2(nextCoordinate.Y, nextCoordinate.Y));
+            float distanceToPreviousTile = Vector2.Distance(currentPos, new Vector2(currentCoordinate.X, currentCoordinate.Y));
+
+            if (distanceToPreviousTile > distanceToNextTile) 
+            {
+                StopCoroutine(moveRoutine);
+                moveRoutine = null;
+            }
+        }
+
+        
     }
 
     private void Update()
     {
-        currentTime += Time.deltaTime;
+        Coordinate nextCoordinate = GetNextCoordinate();
 
-        if(currentTime > speed)
+        if (currentGrid.TryGetTile(nextCoordinate, out GameObject tile))
         {
-            Move();
-            currentTime = 0;
+            StartMove(nextCoordinate);
         }
     }
 
-    void Move()
+    Coordinate GetNextCoordinate()
     {
-        print("movin");
-        int x = (int)currentDirection.x;
-        int y = (int)currentDirection.y;
-        if(currentGrid.TryGetTile(xCoordinate + x, yCoordinate + y, out GameObject tile))
+        return new Coordinate(currentCoordinate.X + (int)currentDirection.x, currentCoordinate.Y + (int)currentDirection.y);
+    }
+
+    void StartMove(Coordinate nextCoordinate)
+    {
+        if (moveRoutine == null)
         {
-            xCoordinate += x;
-            yCoordinate += y;
-            transform.position = new Vector2(xCoordinate, yCoordinate);
+            moveRoutine = StartCoroutine(Move(nextCoordinate));
         }
+    }
+
+    IEnumerator Move(Coordinate nextCoordinate)
+    {
+        float distanceMultiplier = Vector2.Distance(transform.position, new Vector2(nextCoordinate.X, nextCoordinate.Y));
+        float speed = desiredSpeed * distanceMultiplier;
+        print(speed);
+        float elapsedTime = 0;
+
+        Vector2 startPos = transform.position;
+        Vector2 endPos = new Vector2(nextCoordinate.X, nextCoordinate.Y);
+
+        while (speed > elapsedTime)
+        {
+            transform.position = Vector2.Lerp(startPos, endPos, elapsedTime / speed);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = endPos;
+        currentCoordinate = nextCoordinate;
+        moveRoutine = null;
     }
 }
