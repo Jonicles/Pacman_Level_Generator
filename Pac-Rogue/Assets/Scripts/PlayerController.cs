@@ -2,62 +2,51 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Scripting.APIUpdating;
 
 public class PlayerController : MonoBehaviour
 {
     int xCoordinate = 0;
     int yCoordinate = 0;
+    Vector2 currentDirection = Vector2.zero;
+    float speed = 0.2f;
+    float currentTime = 0;
 
     [SerializeField] TileGrid currentGrid;
 
     private void Start()
     {
-        ActionMapManager.playerInput.InGame.Move.performed += Move;
+        ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
     }
 
-    private void Move(InputAction.CallbackContext context)
+    private void ChangeDirection(InputAction.CallbackContext context)
     {
-        Vector2 direction = context.ReadValue<Vector2>();
+        currentDirection = context.ReadValue<Vector2>();
+        currentDirection.Normalize();
 
-        print(direction);
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            if (currentGrid.TryGetTile(xCoordinate, yCoordinate + 1, out GameObject tile))
-            {
-                transform.position = new Vector2(xCoordinate, yCoordinate + 1);
-                yCoordinate++;
-            }
-        }
+        currentTime += Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.D))
+        if(currentTime > speed)
         {
-            if (currentGrid.TryGetTile(xCoordinate + 1, yCoordinate, out GameObject tile))
-            {
-                transform.position = new Vector2(xCoordinate + 1, yCoordinate);
-                xCoordinate++;
-            }
+            Move();
+            currentTime = 0;
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.S))
+    void Move()
+    {
+        print("movin");
+        int x = (int)currentDirection.x;
+        int y = (int)currentDirection.y;
+        if(currentGrid.TryGetTile(xCoordinate + x, yCoordinate + y, out GameObject tile))
         {
-            if (currentGrid.TryGetTile(xCoordinate, yCoordinate - 1, out GameObject tile))
-            {
-                transform.position = new Vector2(xCoordinate, yCoordinate - 1);
-                yCoordinate--;
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            if (currentGrid.TryGetTile(xCoordinate - 1, yCoordinate, out GameObject tile))
-            {
-                transform.position = new Vector2(xCoordinate - 1, yCoordinate);
-                xCoordinate--;
-            }
+            xCoordinate += x;
+            yCoordinate += y;
+            transform.position = new Vector2(xCoordinate, yCoordinate);
         }
     }
 }

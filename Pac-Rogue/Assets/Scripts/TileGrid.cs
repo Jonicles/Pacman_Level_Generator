@@ -38,7 +38,7 @@ public class TileGrid : MonoBehaviour
 
     public bool TryGetTile(int xCoordinate, int yCoordinate, out GameObject tile)
     {
-        bool outOfBounds = xCoordinate < 0 || xCoordinate > grid.GetLength(0) || yCoordinate < 0 || yCoordinate > grid.GetLength(1);
+        bool outOfBounds = xCoordinate < 0 || xCoordinate > grid.GetLength(0) - 1 || yCoordinate < 0 || yCoordinate > grid.GetLength(1) - 1;
         if (outOfBounds)
         {
             tile = null;
