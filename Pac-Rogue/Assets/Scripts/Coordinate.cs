@@ -13,3 +13,5 @@ public struct Coordinate
         return $"({X}, {Y})";
     }
 }
+
+public enum TileState { Empty, Occupied }

@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5624841436075038356}
   - component: {fileID: 5624841436075038357}
-  - component: {fileID: 4288511977923107748}
+  - component: {fileID: 3195124324296724075}
   m_Layer: 0
-  m_Name: Empty Tile
+  m_Name: Occupied Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -358563856, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  m_Sprite: {fileID: -110777767, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4288511977923107748
+--- !u!114 &3195124324296724075
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

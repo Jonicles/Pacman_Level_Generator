@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public TileState State { get; private set; }
+
+    private void Awake()
     {
-        
+        State = TileState.Empty;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OccupyTile()
     {
-        
+        State = TileState.Occupied;
     }
 }

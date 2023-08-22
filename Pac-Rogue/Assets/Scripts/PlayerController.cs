@@ -1,20 +1,21 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Scripting.APIUpdating;
+
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] TileGrid currentGrid;
     [SerializeField] float desiredSpeed = 0.1f;
+    [SerializeField][Range(0.1f, 1)] float maxForgiveDistance = 1;
     Coroutine moveRoutine;
 
-    Vector2 currentDirection = Vector2.right;
-
+    Vector2 desiredDirection;
+    Vector2 currentDirection = Vector2.left;
     Coordinate currentCoordinate = new Coordinate(0, 0);
+
+
 
     private void Start()
     {
@@ -22,12 +23,12 @@ public class PlayerController : MonoBehaviour
     }
     private void Update()
     {
-        Coordinate nextCoordinate = GetNextCoordinate();
-        print(nextCoordinate);
+        Coordinate nextCoordinate = GetNextCoordinate(currentDirection);
 
-        if (currentGrid.TryGetTile(nextCoordinate, out GameObject tile))
+        if (currentGrid.TryGetTile(nextCoordinate, out Tile nextTile))
         {
-            StartMove(nextCoordinate);
+            if (nextTile.State == TileState.Empty)
+                StartMove(nextCoordinate);
         }
     }
 
@@ -36,26 +37,27 @@ public class PlayerController : MonoBehaviour
         currentDirection = context.ReadValue<Vector2>();
         currentDirection.Normalize();
 
-        if (moveRoutine != null)
+        if (moveRoutine == null)
+            return;
+
+        //if(GetNextCoordinate())
+
+        Vector2 currentPosition = transform.position;
+        float distanceToPreviousTile = Vector2.Distance(currentPosition, new Vector2(currentCoordinate.X, currentCoordinate.Y));
+
+        if (distanceToPreviousTile <= maxForgiveDistance)
         {
-            Vector2 currentPos = transform.position;
-
-            Coordinate nextCoordinate = GetNextCoordinate();
-            float distanceToNextTile = Vector2.Distance(currentPos, new Vector2(nextCoordinate.Y, nextCoordinate.Y));
-            float distanceToPreviousTile = Vector2.Distance(currentPos, new Vector2(currentCoordinate.X, currentCoordinate.Y));
-
-            if (distanceToPreviousTile > distanceToNextTile) 
-            {
-                StopCoroutine(moveRoutine);
-                moveRoutine = null;
-            }
+            StopCoroutine(moveRoutine);
+            moveRoutine = null;
         }
 
-        
+
     }
-    Coordinate GetNextCoordinate()
+    Coordinate GetNextCoordinate(Vector2 direction)
     {
-        return new Coordinate(currentCoordinate.X + (int)currentDirection.x, currentCoordinate.Y + (int)Math.Round(currentDirection.y));
+        //We will round up y direction just so that it will take priority over the x direction.
+        //So if the player is pushing several direction at one time it will prioritize the vertical directions
+        return new Coordinate(currentCoordinate.X + (int)direction.x, currentCoordinate.Y + (int)Math.Round(direction.y));
     }
     void StartMove(Coordinate nextCoordinate)
     {
