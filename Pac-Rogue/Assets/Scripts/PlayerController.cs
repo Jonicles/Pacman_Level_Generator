@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] TileGrid currentGrid;
     [SerializeField] float desiredSpeed = 0.1f;
-    [SerializeField][Range(0.1f, 1)] float maxForgiveDistance = 1;
+    [SerializeField][Range(0.1f, 1)] float maxForgivenessDistance = 1;
     Coroutine moveRoutine;
 
     Vector2 desiredDirection = Vector2.left;
@@ -20,14 +20,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
-        ActionMapManager.playerInput.InGame.Move.canceled += DirectionCancel; ;
     }
-
-    private void DirectionCancel(InputAction.CallbackContext obj)
-    {
-        desiredDirection = currentDirection;
-    }
-
     private void Update()
     {
         if (desiredDirection != currentDirection)
@@ -37,7 +30,7 @@ public class PlayerController : MonoBehaviour
                 Vector2 currentPosition = transform.position;
                 float distanceToPreviousTile = Vector2.Distance(currentPosition, new Vector2(currentCoordinate.X, currentCoordinate.Y));
 
-                if (distanceToPreviousTile <= maxForgiveDistance)
+                if (distanceToPreviousTile <= maxForgivenessDistance)
                 {
                     if (moveRoutine != null)
                     {
@@ -45,12 +38,13 @@ public class PlayerController : MonoBehaviour
                         moveRoutine = null;
                     }
 
+                    currentDirection = desiredDirection;
+                    StartMove(desiredCoordinate);
+                    return;
                 }
-                currentDirection = desiredDirection;
-                StartMove(desiredCoordinate);
-                return;
             }
         }
+
 
         if (CheckDesiredCoordinate(currentDirection, out Coordinate nextCoordinate))
         {

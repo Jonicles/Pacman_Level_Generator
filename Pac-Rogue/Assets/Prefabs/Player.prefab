@@ -130,3 +130,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentGrid: {fileID: 0}
+  desiredSpeed: 0.15
+  maxForgiveDistance: 0.5
