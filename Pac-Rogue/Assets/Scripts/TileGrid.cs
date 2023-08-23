@@ -7,8 +7,8 @@ public class TileGrid : MonoBehaviour
     [SerializeField] GameObject tilePrefab;
     [SerializeField] GameObject occupiedTilePrefab;
     Tile[,] grid;
-    int horizontalSize = 10;
-    int verticalSize = 10;
+    int horizontalSize = 20;
+    int verticalSize = 20;
 
     private void Awake()
     {
@@ -23,15 +23,15 @@ public class TileGrid : MonoBehaviour
         {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
-                //int num = Random.Range(0, 2);
+                int num = Random.Range(0, 3);
                 GameObject newTile;
-                //if (num == 0)
+                if (num != 0)
                     newTile = Instantiate(tilePrefab, new Vector3(i, j), Quaternion.identity, tileParent.transform);
-                //else
-                //{
-                //    newTile = Instantiate(occupiedTilePrefab, new Vector3(i, j), Quaternion.identity, tileParent.transform);
-                //    newTile.GetComponent<Tile>().OccupyTile();
-                //}
+                else
+                {
+                    newTile = Instantiate(occupiedTilePrefab, new Vector3(i, j), Quaternion.identity, tileParent.transform);
+                    newTile.GetComponent<Tile>().OccupyTile();
+                }
 
                 SetTile(new Coordinate(i, j), newTile);
             }

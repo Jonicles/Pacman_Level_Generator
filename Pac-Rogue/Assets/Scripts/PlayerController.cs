@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField][Range(0.1f, 1)] float maxForgiveDistance = 1;
     Coroutine moveRoutine;
 
-    Vector2 desiredDirection;
+    Vector2 desiredDirection = Vector2.left;
     Vector2 currentDirection = Vector2.left;
     Coordinate currentCoordinate = new Coordinate(0, 0);
 
@@ -20,38 +20,61 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
+        ActionMapManager.playerInput.InGame.Move.canceled += DirectionCancel; ;
     }
+
+    private void DirectionCancel(InputAction.CallbackContext obj)
+    {
+        desiredDirection = currentDirection;
+    }
+
     private void Update()
     {
-        Coordinate nextCoordinate = GetNextCoordinate(currentDirection);
-
-        if (currentGrid.TryGetTile(nextCoordinate, out Tile nextTile))
+        if (desiredDirection != currentDirection)
         {
-            if (nextTile.State == TileState.Empty)
-                StartMove(nextCoordinate);
+            if (CheckDesiredCoordinate(desiredDirection, out Coordinate desiredCoordinate))
+            {
+                Vector2 currentPosition = transform.position;
+                float distanceToPreviousTile = Vector2.Distance(currentPosition, new Vector2(currentCoordinate.X, currentCoordinate.Y));
+
+                if (distanceToPreviousTile <= maxForgiveDistance)
+                {
+                    if (moveRoutine != null)
+                    {
+                        StopCoroutine(moveRoutine);
+                        moveRoutine = null;
+                    }
+
+                }
+                currentDirection = desiredDirection;
+                StartMove(desiredCoordinate);
+                return;
+            }
         }
+
+        if (CheckDesiredCoordinate(currentDirection, out Coordinate nextCoordinate))
+        {
+            StartMove(nextCoordinate);
+        }
+    }
+
+    private bool CheckDesiredCoordinate(Vector2 direction, out Coordinate desiredCoordinate)
+    {
+        desiredCoordinate = GetNextCoordinate(direction);
+
+        if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
+            return false;
+
+        if (desiredTile.State != TileState.Empty)
+            return false;
+
+        return true;
     }
 
     private void ChangeDirection(InputAction.CallbackContext context)
     {
-        currentDirection = context.ReadValue<Vector2>();
-        currentDirection.Normalize();
-
-        if (moveRoutine == null)
-            return;
-
-        //if(GetNextCoordinate())
-
-        Vector2 currentPosition = transform.position;
-        float distanceToPreviousTile = Vector2.Distance(currentPosition, new Vector2(currentCoordinate.X, currentCoordinate.Y));
-
-        if (distanceToPreviousTile <= maxForgiveDistance)
-        {
-            StopCoroutine(moveRoutine);
-            moveRoutine = null;
-        }
-
-
+        desiredDirection = context.ReadValue<Vector2>();
+        desiredDirection.Normalize();
     }
     Coordinate GetNextCoordinate(Vector2 direction)
     {
