@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
 
                 if (distanceToPreviousTile <= maxForgivenessDistance)
                 {
+                    //If all these condtitions are met we will begin moving the player to the desired tile
+
                     if (moveRoutine != null)
                     {
                         StopCoroutine(moveRoutine);
@@ -59,7 +61,7 @@ public class PlayerController : MonoBehaviour
         if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
             return false;
 
-        if (desiredTile.State != TileState.Empty)
+        if (desiredTile.State == TileState.Occupied)
             return false;
 
         return true;

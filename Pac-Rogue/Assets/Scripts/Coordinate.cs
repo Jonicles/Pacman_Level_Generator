@@ -14,4 +14,4 @@ public struct Coordinate
     }
 }
 
-public enum TileState { Empty, Occupied }
+public enum TileState { Empty, Pellet, Occupied }
