@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] TileGrid currentGrid;
+    [SerializeField] TileGridGenerator currentGrid;
     [SerializeField] float desiredSpeed = 0.1f;
     [SerializeField][Range(0.1f, 1)] float maxForgivenessDistance = 1;
     Coroutine moveRoutine;
@@ -15,13 +15,11 @@ public class PlayerController : MonoBehaviour
     Vector2 currentDirection = Vector2.left;
     Coordinate currentCoordinate = new Coordinate(0, 0);
 
-
-
-    private void Start()
+    void Start()
     {
         ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
     }
-    private void Update()
+    void Update()
     {
         if (desiredDirection != currentDirection)
         {
@@ -54,20 +52,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private bool CheckDesiredCoordinate(Vector2 direction, out Coordinate desiredCoordinate)
+    bool CheckDesiredCoordinate(Vector2 direction, out Coordinate desiredCoordinate)
     {
         desiredCoordinate = GetNextCoordinate(direction);
 
-        if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
-            return false;
+        //if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
+        //    return false;
 
-        if (desiredTile.State == TileState.Occupied)
-            return false;
+        //if (desiredTile.State == TileState.Occupied)
+        //    return false;
 
         return true;
     }
 
-    private void ChangeDirection(InputAction.CallbackContext context)
+    void ChangeDirection(InputAction.CallbackContext context)
     {
         desiredDirection = context.ReadValue<Vector2>();
         desiredDirection.Normalize();
