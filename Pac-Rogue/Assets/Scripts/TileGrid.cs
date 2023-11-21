@@ -37,4 +37,32 @@ public class TileGrid
         tile = grid[coordinate.X, coordinate.Y];
         return true;
     }
+
+    public int GetLength(int dimension)
+    {
+        int length = 0;
+
+        switch (dimension)
+        {
+            case 0:
+                length = grid.GetLength(0);
+                break;
+            case 1:
+                length = grid.GetLength(1);
+                break;
+            default:
+                break;
+        }
+
+        return length;
+    }
+
+    public void DestroyGrid()
+    {
+        foreach (var tile in grid)
+        {
+            GameObject.Destroy(tile.gameObject);
+        }
+    }
+
 }

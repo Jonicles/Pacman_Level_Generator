@@ -5,7 +5,8 @@ using UnityEngine;
 public class Tile : MonoBehaviour
 {
     SpriteRenderer spriteRenderer;
-    public TileState State { get; private set; }
+    public TileState State { get { return state; } private set { state = value; } }
+    [SerializeField] TileState state;
 
     private void Awake()
     {
@@ -17,17 +18,19 @@ public class Tile : MonoBehaviour
     public void PlacePellet()
     {
         State = TileState.Pellet;
-        UpdateDisplay();
+        UpdateDisplay(TileSprite.Pellet);
     }
 
     public void OccupyTile()
     {
         State = TileState.Occupied;
-        UpdateDisplay();
+        UpdateDisplay(TileSprite.Occupied);
     }
 
-    void UpdateDisplay()
+    public void UpdateDisplay(TileSprite tileSprite)
     {
-        spriteRenderer.sprite = TileSpriteHolder.Instance.GetSprite(State);
+        spriteRenderer.sprite = TileSpriteHolder.Instance.GetSprite(tileSprite);
     }
 }
+
+public enum TileState { Empty, Pellet, Occupied }
