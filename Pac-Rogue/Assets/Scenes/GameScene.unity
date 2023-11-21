@@ -238,8 +238,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 5624841436075038315, guid: b253ffa4f0bd11a47ab7b4b42b72eb1e, type: 3}
-  desiredWidth: 14
-  desiredHeight: 14
+  desiredWidth: 27
+  desiredHeight: 30
 --- !u!4 &1743134161
 Transform:
   m_ObjectHideFlags: 0

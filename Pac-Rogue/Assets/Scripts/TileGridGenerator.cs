@@ -20,7 +20,7 @@ public class TileGridGenerator : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if(currentGrid != null)
+            if (currentGrid != null)
             {
                 currentGrid.DestroyGrid();
             }
@@ -28,33 +28,78 @@ public class TileGridGenerator : MonoBehaviour
             currentGrid = GenerateGrid(desiredWidth, desiredHeight);
         }
     }
-    public TileGrid GenerateGrid(int groupMatrixWidth, int groupMatrixHeight)
+    public TileGrid GenerateGrid(int desiredWidth, int desiredHeight)
     {
-        //The width has to be an even number
-        //if (desiredDimensionX % 2 != 0)
-        //{
-        //    desiredDimensionX--;
-        //}
+        //Width always has to be even 
+        if (desiredWidth % 2 != 0)
+            desiredWidth--;
 
-        TileGroup[,] tileGroupMatrix = GenerateTileGroup(groupMatrixWidth, groupMatrixHeight);
+        //When we divide with two integers it is automatically "floored", fractions are thrown away.
+        int groupWidth = (int)MathF.Floor(desiredWidth / tileGroupDimension * 0.5f);
+        int groupHeight = (int)MathF.Floor((float)desiredHeight / (float)tileGroupDimension);
 
-        TileGrid grid = PlacePellets(tileGroupMatrix, groupMatrixWidth, groupMatrixHeight);
+        print($"Width: {groupWidth}, Height: {groupHeight}");
+        TileGroup[,] tileGroupMatrix = GenerateTileGroups(groupWidth, groupHeight);
 
-        CopyTilesToRightSide(grid, groupMatrixWidth, groupMatrixHeight);
+        TileGrid grid = InstantiateTiles(desiredWidth, desiredHeight);
 
-        int fullGridWidth = groupMatrixWidth * tileGroupDimension * 2;
-        int fullGridHeight = groupMatrixHeight * tileGroupDimension;
+        TransformTileStates(grid, tileGroupMatrix, desiredWidth, desiredHeight);
 
-        ChangeOccupiedTileSprites(grid, fullGridWidth, fullGridHeight);
+        AddMissingPellets(grid, groupWidth);
+
+        CopyTilesToRightSide(grid);
+
+        ChangeOccupiedTileSprites(grid);
 
         return grid;
     }
 
-    private void ChangeOccupiedTileSprites(TileGrid grid, int width, int height)
+    private void AddMissingPellets(TileGrid grid, int groupWidth)
     {
-        for (int i = 0; i < width; i++)
+        int missingTiles = grid.GetLength(0) % tileGroupDimension;
+        int xCoord = (int)(grid.GetLength(0) * 0.5f) - 1;
+
+        if (missingTiles == 0)
+            return;
+
+        for (int i = 0; i < grid.GetLength(1); i++)
         {
-            for (int j = 0; j < height; j++)
+            Coordinate coordinate;
+            if (missingTiles == 1)
+                coordinate = new Coordinate(xCoord - 2, i);
+            else
+                coordinate = new Coordinate(xCoord - 1, i);
+
+            if (grid.TryGetTile(coordinate, out Tile pelletTile))
+            {
+                int num;
+
+                if (missingTiles == 1)
+                    num = 1;
+                else
+                    num = 0;
+
+                for (int j = 0; j <= num; j++)
+                {
+                    if (grid.TryGetTile(new Coordinate(xCoord - j, i), out Tile emptyTile))
+                    {
+                        if (pelletTile.State == TileState.Pellet)
+                        {
+                            //print($"Pellet found at ({xCoord - 1}, {i}). Placing at ({xCoord + j}, {i})");
+                            emptyTile.PlacePellet();
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void ChangeOccupiedTileSprites(TileGrid grid)
+    {
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
                 Coordinate currentCoordinate = new Coordinate(i, j);
                 if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
@@ -189,9 +234,8 @@ public class TileGridGenerator : MonoBehaviour
         return code;
     }
 
-    private TileGrid PlacePellets(TileGroup[,] tileGroupMatrix, int desiredDimensionX, int desiredDimensionY)
+    private void TransformTileStates(TileGrid grid, TileGroup[,] tileGroupMatrix, int desiredDimensionX, int desiredDimensionY)
     {
-        TileGrid grid = InstantiateTiles(desiredDimensionX, desiredDimensionY);
 
         for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
         {
@@ -222,53 +266,66 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
 
-        return grid;
+        //Very ineffective, needs to optimize
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                Coordinate coordinate = new Coordinate(i, j);
+
+                if (grid.TryGetTile(coordinate, out Tile tile))
+                {
+                    if (tile.State == TileState.Empty)
+                    {
+                        tile.OccupyTile();
+                    }
+                }
+            }
+        }
     }
 
-    private TileGrid InstantiateTiles(int desiredDimensionX, int desiredDimensionY)
+    private TileGrid InstantiateTiles(int width, int height)
     {
         //We multiply with two so we later can copy over the tiles to the right side.
-        int tileGridWidth = desiredDimensionX * tileGroupDimension * 2;
-        int tileGridHeight = desiredDimensionY * tileGroupDimension;
+        //int tileGridWidth = desiredDimensionX * tileGroupDimension * 2;
+        //int tileGridHeight = desiredDimensionY * tileGroupDimension;
 
-        TileGrid grid = new TileGrid(tileGridWidth, tileGridHeight);
+        TileGrid grid = new TileGrid(width, height);
+        GameObject parent = new GameObject();
+        parent.name = "Grid";
 
-        for (int i = 0; i < tileGridWidth; i++)
+        for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < tileGridHeight; j++)
+            for (int j = 0; j < height; j++)
             {
-                Coordinate tileCoordinate = new Coordinate(i, j);
+                Coordinate coordinate = new Coordinate(i, j);
 
-                GameObject newTile = Instantiate(tilePrefab, new Vector3(tileCoordinate.X, tileCoordinate.Y), Quaternion.identity);
-                newTile.name = tileCoordinate.ToString();
-                grid.SetTile(tileCoordinate, newTile);
+                GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity, parent.transform);
+                newTile.name = coordinate.ToString();
+                grid.SetTile(coordinate, newTile);
             }
         }
 
         return grid;
     }
 
-    private TileGroup[,] GenerateTileGroup(int dimensionX, int dimensionY)
+    private TileGroup[,] GenerateTileGroups(int width, int height)
     {
-        TileGroup[,] tileGroupMatrix = CreateTileGroupMatrix(dimensionX, dimensionY);
+        TileGroup[,] tileGroupMatrix = CreateTileGroupMatrix(width, height);
         Dictionary<Coordinate, TileGroup> dict = new Dictionary<Coordinate, TileGroup>();
 
-        for (int i = 0; i < dimensionX; i++)
+        for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < dimensionY; j++)
-            {
+            for (int j = 0; j < height; j++)
                 dict.Add(new Coordinate(i, j), tileGroupMatrix[i, j]);
-            }
         }
 
         RemoveShapesFromBorderGroups(tileGroupMatrix);
 
         System.Random rand = new System.Random();
-
         while (dict.Count > 0)
         {
             Coordinate startCoordinate = dict.ElementAt(rand.Next(0, dict.Count)).Key;
-            //Coordinate startCoordinate = new Coordinate(UnityEngine.Random.Range(0, tileGroupMatrix.GetLength(0)), UnityEngine.Random.Range(0, tileGroupMatrix.GetLength(1)));
             TileGroup startingTileGroup = tileGroupMatrix[startCoordinate.X, startCoordinate.Y];
 
             if (!startingTileGroup.DefiniteShapeSet)
@@ -291,17 +348,13 @@ public class TileGridGenerator : MonoBehaviour
                 TileGroup currentTileGroup = tileGroupMatrix[i, j];
 
                 //If any of these conditions are true it means it is a TileGroup on the border
+                //We will not remove shapes from tilegroups on the right side since we will later copy tiles over to the right side. 
+
                 if (i == 0)
                 {
                     currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionLeft);
                     UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
                 }
-
-                //if (i == tileGroupMatrix.GetLength(0) - 1)
-                //{
-                //    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionRight);
-                //    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
-                //}
 
                 if (j == 0)
                 {
@@ -383,32 +436,28 @@ public class TileGridGenerator : MonoBehaviour
             UpdateNeighboringTileGroups(nextGroup, nextCoordinate, tileGroupMatrix);
     }
 
-    TileGroup[,] CreateTileGroupMatrix(int dimensionX, int dimensionY)
+    TileGroup[,] CreateTileGroupMatrix(int width, int height)
     {
-        TileGroup[,] tileGroupMatrix = new TileGroup[dimensionX, dimensionY];
+        TileGroup[,] tileGroupMatrix = new TileGroup[width, height];
 
-        for (int i = 0; i < dimensionX; i++)
+        for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < dimensionY; j++)
-            {
+            for (int j = 0; j < height; j++)
                 tileGroupMatrix[i, j] = new TileGroup();
-            }
         }
 
         return tileGroupMatrix;
     }
 
-    private void CopyTilesToRightSide(TileGrid grid, int dimensionX, int dimensionY)
+    private void CopyTilesToRightSide(TileGrid grid)
     {
-        int fullWidth = dimensionX * tileGroupDimension * 2;
-
-        for (int i = 0; i < dimensionX * tileGroupDimension; i++)
+        for (int i = 0; i < grid.GetLength(0) * 0.5f; i++)
         {
-            for (int j = 0; j < dimensionY * tileGroupDimension; j++)
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
                 if (grid.TryGetTile(new Coordinate(i, j), out Tile tileToCopy))
                 {
-                    if (grid.TryGetTile(new Coordinate((dimensionX * tileGroupDimension * 2 - 1) - i, j), out Tile newTile))
+                    if (grid.TryGetTile(new Coordinate((grid.GetLength(0) - 1) - i, j), out Tile newTile))
                     {
                         switch (tileToCopy.State)
                         {
