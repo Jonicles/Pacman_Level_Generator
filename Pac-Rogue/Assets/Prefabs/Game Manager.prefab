@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2452614400046322511
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2452614400046322513}
+  - component: {fileID: 2452614400046322512}
+  - component: {fileID: 2452614400046322514}
+  m_Layer: 0
+  m_Name: Game Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2452614400046322513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452614400046322511}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2452614400046322512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452614400046322511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c45947fefa9641249b31ab7b98547661, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilePrefab: {fileID: 5624841436075038315, guid: b253ffa4f0bd11a47ab7b4b42b72eb1e, type: 3}
+  desiredWidth: 28
+  desiredHeight: 31
+--- !u!114 &2452614400046322514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452614400046322511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e28cdc764493e2b4cbf1bddad987e1e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  emptySprite: {fileID: -657023871, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  pelletSprite: {fileID: -715095531, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  occupiedSprite: {fileID: -358563856, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  edgeUpSprite: {fileID: -110777767, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  edgeDownSprite: {fileID: -1520386622, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  edgeLeftSprite: {fileID: 982884947, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  edgeRightSprite: {fileID: -1603567205, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  cornerUpLeftSprite: {fileID: 1339254991, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  cornerUpRightSprite: {fileID: 1097452439, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  cornerDownLeftSprite: {fileID: 381286737, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  cornerDownRightSprite: {fileID: 1498384160, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  inverserCornerUpLeftSprite: {fileID: 1699967951, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  inverseCornerUpRightSprite: {fileID: -1893255198, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  inverseCornerDownLeftSprite: {fileID: 1471825231, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  inverseCornerDownRightSprite: {fileID: -372524070, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostDoorSprite: {fileID: 173694168, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostDoorConnectorRightSprite: {fileID: -1790590798, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostDoorConnectorLeftSprite: {fileID: 1486415241, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxEdgeUpSprite: {fileID: 2102051218, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxEdgeDown: {fileID: 966975369, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxEdgeLeftSprite: {fileID: 387298604, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxEdgeRightSprite: {fileID: 1274019425, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxCornerUpRightSprite: {fileID: -1834794152, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxCornerUpLeftSprite: {fileID: 1396548417, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxCornerDownRightSprite: {fileID: -2072409415, guid: cfce7e56079fe24439dc965af28263d9, type: 3}
+  ghostBoxCornerDownLeftSprite: {fileID: 311100329, guid: cfce7e56079fe24439dc965af28263d9, type: 3}

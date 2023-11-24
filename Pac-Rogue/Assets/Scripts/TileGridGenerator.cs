@@ -33,66 +33,439 @@ public class TileGridGenerator : MonoBehaviour
         //Width always has to be even 
         if (desiredWidth % 2 != 0)
             desiredWidth--;
+        //Height always has to be odd for ghost box
+        //IMPLEMENTATION
 
         //When we divide with two integers it is automatically "floored", fractions are thrown away.
         int groupWidth = (int)MathF.Floor(desiredWidth / tileGroupDimension * 0.5f);
         int groupHeight = (int)MathF.Floor((float)desiredHeight / (float)tileGroupDimension);
 
-        print($"Width: {groupWidth}, Height: {groupHeight}");
         TileGroup[,] tileGroupMatrix = GenerateTileGroups(groupWidth, groupHeight);
 
         TileGrid grid = InstantiateTiles(desiredWidth, desiredHeight);
 
         TransformTileStates(grid, tileGroupMatrix, desiredWidth, desiredHeight);
 
-        AddMissingPellets(grid, groupWidth);
+        //AddPelletsToWidth(grid, groupWidth);
 
         CopyTilesToRightSide(grid);
+
+        CreateGhostBox(grid);
+
+        AddMissingPellets(grid);
+
+        RemoveIncorrectTiles(grid);
+
+        ConnectPaths(grid);
 
         ChangeOccupiedTileSprites(grid);
 
         return grid;
     }
 
-    private void AddMissingPellets(TileGrid grid, int groupWidth)
+    private void ConnectPaths(TileGrid grid)
     {
-        int missingTiles = grid.GetLength(0) % tileGroupDimension;
-        int xCoord = (int)(grid.GetLength(0) * 0.5f) - 1;
 
-        if (missingTiles == 0)
-            return;
+        //for (int i = 0; i < grid.GetLength(1); i++)
+        //{
+        //    for (int i = 0; i < length; i++)
+        //    {
 
-        for (int i = 0; i < grid.GetLength(1); i++)
+        //    }
+        //}
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            Coordinate coordinate;
-            if (missingTiles == 1)
-                coordinate = new Coordinate(xCoord - 2, i);
-            else
-                coordinate = new Coordinate(xCoord - 1, i);
+            bool connected = false;
 
-            if (grid.TryGetTile(coordinate, out Tile pelletTile))
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
-                int num;
+                Coordinate currentCoordinate = new Coordinate(i, j);
 
-                if (missingTiles == 1)
-                    num = 1;
-                else
-                    num = 0;
-
-                for (int j = 0; j <= num; j++)
+                if (grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile northTile))
                 {
-                    if (grid.TryGetTile(new Coordinate(xCoord - j, i), out Tile emptyTile))
+                    if (northTile.State != TileState.Occupied)
                     {
-                        if (pelletTile.State == TileState.Pellet)
-                        {
-                            //print($"Pellet found at ({xCoord - 1}, {i}). Placing at ({xCoord + j}, {i})");
-                            emptyTile.PlacePellet();
-                        }
+                        connected = true;
                     }
-
                 }
             }
         }
+    }
+
+    private void RemoveIncorrectTiles(TileGrid grid)
+    {
+        Dictionary<Coordinate, Tile> tilesToEmpty = new Dictionary<Coordinate, Tile>();
+
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                Coordinate currentCoordinate = new Coordinate(i, j);
+                if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                {
+                    if (currentTile.State == TileState.Occupied)
+                    {
+                        string code = DetermineTileCode(grid, currentCoordinate);
+
+                        switch (code)
+                        {
+                            case "101000010":
+                                Coordinate northCoordinate = currentCoordinate + Coordinate.north;
+                                Coordinate southCoordinate = currentCoordinate + Coordinate.south;
+
+                                if (!tilesToEmpty.ContainsKey(currentCoordinate))
+                                    tilesToEmpty.Add(currentCoordinate, currentTile);
+
+                                if (!tilesToEmpty.ContainsKey(northCoordinate))
+                                {
+                                    grid.TryGetTile(northCoordinate, out Tile northTile);
+                                    tilesToEmpty.Add(northCoordinate, northTile);
+                                }
+
+                                if (!tilesToEmpty.ContainsKey(southCoordinate))
+                                {
+                                    grid.TryGetTile(southCoordinate, out Tile southTile);
+                                    tilesToEmpty.Add(southCoordinate, southTile);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (KeyValuePair<Coordinate, Tile> tileToEmpty in tilesToEmpty)
+        {
+            if (tileToEmpty.Key == new Coordinate(10, 15) ||
+                tileToEmpty.Key == new Coordinate(10, 16) ||
+                tileToEmpty.Key == new Coordinate(10, 17) ||
+                tileToEmpty.Key == new Coordinate(17, 15) ||
+                tileToEmpty.Key == new Coordinate(17, 16) ||
+                tileToEmpty.Key == new Coordinate(17, 17))
+                continue;
+
+            tileToEmpty.Value.EmptyTile();
+        }
+    }
+
+    private void CreateGhostBox(TileGrid grid)
+    {
+        GhostBox box = new GhostBox();
+
+        int halfHeight = /*(int)(0.5f * (grid.GetLength(1) - 1))*/15;
+        int halfWidth = /*(int)(0.5f * grid.GetLength(0))*/14;
+        int ghostBoxHeight = 11;
+        int ghostBoxWidth = 14;
+        int ghostBoxHalfHeight = 5;
+        int ghostBoxHalfWidth = 7;
+
+        Coordinate startCoordinate = new Coordinate(halfWidth - ghostBoxHalfWidth, halfHeight - ghostBoxHalfHeight + 1);
+
+        for (int i = 0; i < ghostBoxWidth; i++)
+        {
+            for (int j = 0; j < ghostBoxHeight; j++)
+            {
+                Coordinate currentCoordinate = startCoordinate + new Coordinate(i, j);
+
+                if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                {
+                    Tuple<TileState, TileSprite> currentValue = box.dict[new Coordinate(i, j)];
+
+                    switch (currentValue.Item1)
+                    {
+                        case TileState.Empty:
+                            currentTile.EmptyTile();
+                            break;
+                        case TileState.Pellet:
+                            currentTile.PlacePellet();
+                            break;
+                        case TileState.Occupied:
+                            currentTile.OccupyTile();
+                            break;
+                        default:
+                            break;
+                    }
+
+                    currentTile.UpdateDisplay(currentValue.Item2);
+                }
+            }
+        }
+
+        for (int i = 0; i < ghostBoxWidth; i++)
+        {
+            for (int j = 0; j < ghostBoxHeight; j++)
+            {
+                Coordinate currentCoordinate = startCoordinate + new Coordinate(i, j);
+
+                if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                {
+                    if (i == 2 && j > 1 && j < ghostBoxHeight - 2)
+                    {
+                        Coordinate oneLeftCoordinate = currentCoordinate + new Coordinate(-3, 0);
+                        Coordinate twoLeftCoordinate = currentCoordinate + new Coordinate(-4, 0);
+
+                        if (grid.TryGetTile(oneLeftCoordinate, out Tile oneLeftTile) &&
+                            grid.TryGetTile(twoLeftCoordinate, out Tile twoLeftTile))
+                        {
+                            if (oneLeftTile.State == TileState.Pellet && twoLeftTile.State == TileState.Pellet)
+                            {
+                                Coordinate C1 = currentCoordinate + new Coordinate(-1, 0);
+                                Coordinate C2 = currentCoordinate + new Coordinate(-2, 0);
+
+                                grid.TryGetTile(C1, out Tile T1);
+                                grid.TryGetTile(C2, out Tile T2);
+
+                                T1.EmptyTile();
+                                T2.PlacePellet();
+                            }
+                        }
+                    }
+
+                    if (i == ghostBoxWidth - 3 && j > 1 && j < ghostBoxHeight - 2)
+                    {
+                        Coordinate oneRightCoordinate = currentCoordinate + new Coordinate(3, 0);
+                        Coordinate twoRightCoordinate = currentCoordinate + new Coordinate(4, 0);
+
+                        if (grid.TryGetTile(oneRightCoordinate, out Tile oneRightTile) &&
+                            grid.TryGetTile(twoRightCoordinate, out Tile twoRightTile))
+                        {
+                            if (oneRightTile.State == TileState.Pellet && twoRightTile.State == TileState.Pellet)
+                            {
+                                Coordinate C1 = currentCoordinate + new Coordinate(1, 0);
+                                Coordinate C2 = currentCoordinate + new Coordinate(2, 0);
+
+                                grid.TryGetTile(C1, out Tile T1);
+                                grid.TryGetTile(C2, out Tile T2);
+
+                                T1.EmptyTile();
+                                T2.PlacePellet();
+                            }
+                        }
+                    }
+
+                    if (j == 2 && i > 1 && i < ghostBoxWidth - 2)
+                    {
+                        Coordinate oneDownCoordinate = currentCoordinate + new Coordinate(0, -3);
+                        Coordinate twoDownCoordinate = currentCoordinate + new Coordinate(0, -4);
+
+                        if (grid.TryGetTile(oneDownCoordinate, out Tile oneDownTile) &&
+                            grid.TryGetTile(twoDownCoordinate, out Tile twoDownTile))
+                        {
+                            if (oneDownTile.State == TileState.Pellet && twoDownTile.State == TileState.Pellet)
+                            {
+                                Coordinate C1 = currentCoordinate + new Coordinate(0, -1);
+                                Coordinate C2 = currentCoordinate + new Coordinate(-0, -2);
+
+                                grid.TryGetTile(C1, out Tile T1);
+                                grid.TryGetTile(C2, out Tile T2);
+
+                                T1.EmptyTile();
+                                T2.EmptyTile();
+                            }
+                        }
+                    }
+
+                    if (j == ghostBoxHeight - 3 && i > 1 && i < ghostBoxWidth - 2)
+                    {
+                        Coordinate oneUpCoordinate = currentCoordinate + new Coordinate(0, 3);
+                        Coordinate twoUpCoordinate = currentCoordinate + new Coordinate(0, 4);
+
+                        if (grid.TryGetTile(oneUpCoordinate, out Tile oneUpTile) &&
+                            grid.TryGetTile(twoUpCoordinate, out Tile twoUpTile))
+                        {
+                            if (oneUpTile.State == TileState.Pellet && twoUpTile.State == TileState.Pellet)
+                            {
+                                Coordinate C1 = currentCoordinate + new Coordinate(0, 1);
+                                Coordinate C2 = currentCoordinate + new Coordinate(0, 2);
+
+                                grid.TryGetTile(C1, out Tile T1);
+                                grid.TryGetTile(C2, out Tile T2);
+
+                                T1.EmptyTile();
+                                T2.EmptyTile();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void AddMissingPellets(TileGrid grid)
+    {
+        AddPelletsToWidth(grid);
+        AddPelletsToHeight(grid);
+    }
+
+    private void AddPelletsToHeight(TileGrid grid)
+    {
+        bool reUpdate = false;
+
+        do
+        {
+            reUpdate = false;
+            for (int i = 0; i < grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    Coordinate currentCoordinate = new Coordinate(i, j);
+                    if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    {
+                        if (currentTile.State == TileState.Occupied)
+                        {
+                            string code = DetermineTileCode(grid, currentCoordinate);
+
+                            switch (code)
+                            {
+                                case "110111111":
+                                    print("Placing Pellets Down");
+                                    currentTile.PlacePellet();
+
+                                    bool shouldPlacePelletsDown = true;
+                                    bool insideGridDown = true;
+
+
+                                    while (insideGridDown && shouldPlacePelletsDown)
+                                    {
+                                        Tile southTile;
+                                        Tile eastWhenSouthTile;
+                                        Tile westWhenSouthTile;
+
+
+                                        bool workAround1 = grid.TryGetTile(currentCoordinate + Coordinate.south, out southTile);
+                                        bool workAround2 = grid.TryGetTile(currentCoordinate + Coordinate.east, out eastWhenSouthTile);
+                                        bool workAround3 = grid.TryGetTile(currentCoordinate + Coordinate.west, out westWhenSouthTile);
+
+                                        insideGridDown = workAround1 && workAround2 && workAround3;
+
+                                        if (insideGridDown)
+                                        {
+                                            if ((eastWhenSouthTile.State == TileState.Occupied && westWhenSouthTile.State == TileState.Occupied && southTile.State == TileState.Occupied))
+                                            {
+                                                southTile.PlacePellet();
+                                                currentCoordinate += Coordinate.south;
+                                            }
+                                            else
+                                            {
+                                                southTile.PlacePellet();
+                                                shouldPlacePelletsDown = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    reUpdate = true;
+                                    break;
+                                case "111111101":
+                                    print("Placing Pellets Up");
+                                    currentTile.PlacePellet();
+
+                                    bool shouldPlacePelletsUp = true;
+                                    bool insideGridUp = true;
+
+
+                                    while (insideGridUp && shouldPlacePelletsUp)
+                                    {
+                                        Tile northTile;
+                                        Tile eastWhenSouthTile;
+                                        Tile westWhenSouthTile;
+
+
+                                        bool workAround1 = grid.TryGetTile(currentCoordinate + Coordinate.north, out northTile);
+                                        bool workAround2 = grid.TryGetTile(currentCoordinate + Coordinate.east, out eastWhenSouthTile);
+                                        bool workAround3 = grid.TryGetTile(currentCoordinate + Coordinate.west, out westWhenSouthTile);
+
+                                        insideGridUp = workAround1 && workAround2 && workAround3;
+
+                                        if (insideGridUp)
+                                        {
+                                            if ((eastWhenSouthTile.State == TileState.Occupied && westWhenSouthTile.State == TileState.Occupied && northTile.State == TileState.Occupied))
+                                            {
+                                                northTile.PlacePellet();
+                                                currentCoordinate += Coordinate.north;
+                                            }
+                                            else
+                                            {
+                                                northTile.PlacePellet();
+                                                shouldPlacePelletsUp = false;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    reUpdate = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        } while (reUpdate);
+    }
+
+    private void AddPelletsToWidth(TileGrid grid)
+    {
+        bool reUpdate = false;
+
+        do
+        {
+            reUpdate = false;
+            for (int i = 0; i < grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    Coordinate currentCoordinate = new Coordinate(i, j);
+                    if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    {
+                        if (currentTile.State == TileState.Occupied)
+                        {
+                            string code = DetermineTileCode(grid, currentCoordinate);
+
+                            switch (code)
+                            {
+                                //Left
+                                case "111110111":
+                                    print("Placing left");
+                                    currentTile.PlacePellet();
+                                    if (grid.TryGetTile(currentCoordinate + Coordinate.west, out Tile westTile))
+                                        westTile.PlacePellet();
+                                    reUpdate = true;
+                                    break;
+                                case "101100011":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111100011":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "101100111":
+                                    currentTile.PlacePellet();
+                                    break;
+                                //Right
+                                case "111101111":
+                                    print("Placing right");
+                                    currentTile.PlacePellet();
+                                    if (grid.TryGetTile(currentCoordinate + Coordinate.east, out Tile eastTile))
+                                        eastTile.PlacePellet();
+                                    break;
+                                case "111000110":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111100110":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111000111":
+                                    currentTile.PlacePellet();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        } while (reUpdate);
     }
 
     private void ChangeOccupiedTileSprites(TileGrid grid)
@@ -106,18 +479,21 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (currentTile.State == TileState.Occupied)
                     {
-                        string code = DetermineTileCode(grid, currentCoordinate, currentTile);
-                        TileSprite tileSprite = GetTileSprite(code);
-                        currentTile.UpdateDisplay(tileSprite);
+                        string code = DetermineTileCode(grid, currentCoordinate);
+
+                        if (TryGetTileSprite(code, out TileSprite sprite))
+                        {
+                            currentTile.UpdateDisplay(sprite);
+                        }
                     }
                 }
             }
         }
     }
 
-    private TileSprite GetTileSprite(string code)
+    private bool TryGetTileSprite(string code, out TileSprite tileSprite)
     {
-        TileSprite tileSprite = TileSprite.Occupied;
+        tileSprite = TileSprite.Occupied;
 
         switch (code)
         {
@@ -163,13 +539,37 @@ public class TileGridGenerator : MonoBehaviour
             case "101101000":
                 tileSprite = TileSprite.CornerDownLeft;
                 break;
+            case "111101000":
+                tileSprite = TileSprite.CornerDownLeft;
+                break;
+            case "101101001":
+                tileSprite = TileSprite.CornerDownLeft;
+                break;
             case "111010000":
+                tileSprite = TileSprite.CornerDownRight;
+                break;
+            case "111110000":
+                tileSprite = TileSprite.CornerDownRight;
+                break;
+            case "111010100":
                 tileSprite = TileSprite.CornerDownRight;
                 break;
             case "100001011":
                 tileSprite = TileSprite.CornerUpLeft;
                 break;
+            case "100001111":
+                tileSprite = TileSprite.CornerUpLeft;
+                break;
+            case "100101011":
+                tileSprite = TileSprite.CornerUpLeft;
+                break;
             case "100010110":
+                tileSprite = TileSprite.CornerUpRight;
+                break;
+            case "100010111":
+                tileSprite = TileSprite.CornerUpRight;
+                break;
+            case "110010110":
                 tileSprite = TileSprite.CornerUpRight;
                 break;
             case "101111111":
@@ -184,14 +584,57 @@ public class TileGridGenerator : MonoBehaviour
             case "111111110":
                 tileSprite = TileSprite.InverseCornerDownRight;
                 break;
+
+            ////Unorthodox cases
+            //case "111101101":
+            //    reUpdateRequired = true;
+            //    currentTile.PlacePellet();
+            //    break;
+            //case "111110101":
+            //    reUpdateRequired = true;
+            //    currentTile.PlacePellet();
+            //    break;
+            //case "100011101":
+            //    reUpdateRequired = true;
+            //    currentTile.PlacePellet();
+            //    print("New case!");
+            //    break;
+            //case "111110111":
+            //    reUpdateRequired = true;
+            //    currentTile.PlacePellet();
+            //    grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile upperTileRightSide);
+            //    upperTileRightSide.PlacePellet();
+            //    print("Placing pellets left side");
+            //    break;
+            //case "111101111":
+            //    reUpdateRequired = true;
+            //    currentTile.PlacePellet();
+            //    grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile upperTileLeftSide);
+            //    upperTileLeftSide.PlacePellet();
+            //    print("Placing pellets right side");
+            //    break;
+            //case "101101110":
+            //    tileSprite = TileSprite.FunnelDownLeft;
+            //    grid.TryGetTile(currentCoordinate + Coordinate.southWest, out Tile soutWestTile);
+            //    grid.TryGetTile(currentCoordinate + Coordinate.south, out Tile southTile);
+            //    southTile.UpdateDisplay(TileSprite.EdgeRight);
+            //    soutWestTile.UpdateDisplay(TileSprite.SoftCornerDownRight);
+            //    print("YUP");
+            //    break;
+            //case "111011011":
+            //    tileSprite = TileSprite.DoubleInverseForward;
+            //    break;
+            //case "101111110":
+            //    tileSprite = TileSprite.DoubleInverseBackward;
+            //    break;
             default:
-                break;
+                return false;
         }
 
-        return tileSprite;
+        return true;
     }
 
-    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate, Tile currentTile)
+    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
     {
         Coordinate northWestCoordinate = currentCoordinate + Coordinate.northWest;
         Coordinate northCoordinate = currentCoordinate + Coordinate.north;
@@ -228,6 +671,7 @@ public class TileGridGenerator : MonoBehaviour
                     code += 0;
             }
             else
+                //If tile is outside grid
                 code += 1;
         }
 
@@ -236,7 +680,6 @@ public class TileGridGenerator : MonoBehaviour
 
     private void TransformTileStates(TileGrid grid, TileGroup[,] tileGroupMatrix, int desiredDimensionX, int desiredDimensionY)
     {
-
         for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
         {
             for (int j = 0; j < tileGroupMatrix.GetLength(1); j++)
@@ -255,6 +698,7 @@ public class TileGridGenerator : MonoBehaviour
                             if (boolArray[k, l])
                             {
                                 tileComponent.PlacePellet();
+                                grid.PelletAmount++;
                             }
                             else
                             {
@@ -266,33 +710,24 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
 
-        //Very ineffective, needs to optimize
         for (int i = 0; i < grid.GetLength(0); i++)
         {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
-                Coordinate coordinate = new Coordinate(i, j);
+                grid.TryGetTile(new Coordinate(i, j), out Tile tile);
 
-                if (grid.TryGetTile(coordinate, out Tile tile))
-                {
-                    if (tile.State == TileState.Empty)
-                    {
-                        tile.OccupyTile();
-                    }
-                }
+                if (tile.State == TileState.Empty)
+                    tile.OccupyTile();
             }
         }
     }
 
     private TileGrid InstantiateTiles(int width, int height)
     {
-        //We multiply with two so we later can copy over the tiles to the right side.
-        //int tileGridWidth = desiredDimensionX * tileGroupDimension * 2;
-        //int tileGridHeight = desiredDimensionY * tileGroupDimension;
+        //GameObject parent = new GameObject();
+        //parent.name = "Grid";
 
         TileGrid grid = new TileGrid(width, height);
-        GameObject parent = new GameObject();
-        parent.name = "Grid";
 
         for (int i = 0; i < width; i++)
         {
@@ -300,7 +735,8 @@ public class TileGridGenerator : MonoBehaviour
             {
                 Coordinate coordinate = new Coordinate(i, j);
 
-                GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity, parent.transform);
+                //GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity, parent.transform);
+                GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity);
                 newTile.name = coordinate.ToString();
                 grid.SetTile(coordinate, newTile);
             }
@@ -462,9 +898,11 @@ public class TileGridGenerator : MonoBehaviour
                         switch (tileToCopy.State)
                         {
                             case TileState.Empty:
+                                newTile.EmptyTile();
                                 break;
                             case TileState.Pellet:
                                 newTile.PlacePellet();
+                                grid.PelletAmount++;
                                 break;
                             case TileState.Occupied:
                                 newTile.OccupyTile();

@@ -8,6 +8,7 @@ using UnityEngine;
 public class TileGrid
 {
     Tile[,] grid;
+    public int PelletAmount { get; set; }
 
     public TileGrid(int dimensionX, int dimensionY)
     {

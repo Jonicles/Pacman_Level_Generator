@@ -20,6 +20,26 @@ public class TileSpriteHolder : MonoBehaviour
     [SerializeField] Sprite inverseCornerUpRightSprite;
     [SerializeField] Sprite inverseCornerDownLeftSprite;
     [SerializeField] Sprite inverseCornerDownRightSprite;
+    
+    [SerializeField] Sprite doubleInverseForwardSprite;
+    [SerializeField] Sprite doubleInverseBackwardSprite;
+    [SerializeField] Sprite SoftCornerDownLeftSprite;
+    [SerializeField] Sprite SoftCornerDownRightSprite;
+    [SerializeField] Sprite FunnelDownLeftSprite;
+    [SerializeField] Sprite FunnerlDownRightSprite;
+
+
+    [SerializeField] Sprite ghostDoorSprite;
+    [SerializeField] Sprite ghostDoorConnectorRightSprite;
+    [SerializeField] Sprite ghostDoorConnectorLeftSprite;
+    [SerializeField] Sprite ghostBoxEdgeUpSprite;
+    [SerializeField] Sprite ghostBoxEdgeDown;
+    [SerializeField] Sprite ghostBoxEdgeLeftSprite;
+    [SerializeField] Sprite ghostBoxEdgeRightSprite;
+    [SerializeField] Sprite ghostBoxCornerUpRightSprite;
+    [SerializeField] Sprite ghostBoxCornerUpLeftSprite;
+    [SerializeField] Sprite ghostBoxCornerDownRightSprite;
+    [SerializeField] Sprite ghostBoxCornerDownLeftSprite;
 
     private void Awake()
     {
@@ -38,6 +58,7 @@ public class TileSpriteHolder : MonoBehaviour
 
         switch (tileSprite)
         {
+            //Normal tiles
             case TileSprite.Empty:
                 sprite = emptySprite;
                 break;
@@ -83,6 +104,61 @@ public class TileSpriteHolder : MonoBehaviour
             case TileSprite.InverseCornerUpRight:
                 sprite = inverseCornerUpRightSprite;
                 break;
+
+                //Unorthodox
+            case TileSprite.DoubleInverseForward:
+                sprite = doubleInverseForwardSprite;
+                break;
+            case TileSprite.DoubleInverseBackward:
+                sprite = doubleInverseBackwardSprite;
+                break;
+            case TileSprite.SoftCornerDownLeft:
+                sprite = SoftCornerDownLeftSprite;
+                break;
+            case TileSprite.SoftCornerDownRight:
+                sprite = SoftCornerDownRightSprite;
+                break;
+            case TileSprite.FunnelDownLeft:
+                sprite = FunnelDownLeftSprite;
+                break;
+            case TileSprite.FunnelDownRight:
+                sprite = FunnerlDownRightSprite;
+                break;
+
+                //Ghost
+            case TileSprite.GhostDoor:
+                sprite = ghostDoorSprite;
+                break;
+            case TileSprite.GhostDoorConnectorRight:
+                sprite = ghostDoorConnectorRightSprite;
+                break;
+            case TileSprite.GhostDoorConnectorLeft:
+                sprite = ghostDoorConnectorLeftSprite;
+                break;
+            case TileSprite.GhostBoxEdgeUp:
+                sprite = ghostBoxEdgeUpSprite;
+                break;
+            case TileSprite.GhostBoxEdgeDown:
+                sprite = ghostBoxEdgeDown;
+                break;
+            case TileSprite.GhostBoxEdgeLeft:
+                sprite = ghostBoxEdgeLeftSprite;
+                break;
+            case TileSprite.GhostBoxEdgeRight:
+                sprite = ghostBoxEdgeRightSprite;
+                break;
+            case TileSprite.GhostBoxCornerUpRight:
+                sprite = ghostBoxCornerUpRightSprite;
+                break;
+            case TileSprite.GhostBoxCornerUpLeft:
+                sprite = ghostBoxCornerUpLeftSprite;
+                break;
+            case TileSprite.GhostBoxCornerDownRight:
+                sprite = ghostBoxCornerDownRightSprite;
+                break;
+            case TileSprite.GhostBoxCornerDownLeft:
+                sprite = ghostBoxCornerDownLeftSprite;
+                break;
             default:
                 sprite = occupiedSprite;
                 break;
@@ -108,5 +184,25 @@ public enum TileSprite
     InverseCornerDownLeft,
     InverseCornerDownRight,
     InverseCornerUpLeft,
-    InverseCornerUpRight
+    InverseCornerUpRight,
+    
+    DoubleInverseForward,
+    DoubleInverseBackward,
+    SoftCornerDownLeft,
+    SoftCornerDownRight,
+    FunnelDownLeft,
+    FunnelDownRight,
+    
+    GhostDoor,
+    GhostDoorConnectorRight,
+    GhostDoorConnectorLeft,
+    GhostBoxEdgeUp,
+    GhostBoxEdgeDown,
+    GhostBoxEdgeLeft,
+    GhostBoxEdgeRight,
+    GhostBoxCornerUpLeft,
+    GhostBoxCornerUpRight,
+    GhostBoxCornerDownLeft,
+    GhostBoxCornerDownRight
+
 }

@@ -27,10 +27,21 @@ public class Tile : MonoBehaviour
         UpdateDisplay(TileSprite.Occupied);
     }
 
+    public void EmptyTile()
+    {
+        State = TileState.Empty;
+        UpdateDisplay(TileSprite.Empty);
+    }
+
     public void UpdateDisplay(TileSprite tileSprite)
     {
         spriteRenderer.sprite = TileSpriteHolder.Instance.GetSprite(tileSprite);
     }
 }
 
-public enum TileState { Empty, Pellet, Occupied }
+public enum TileState 
+{ 
+    Empty, 
+    Pellet, 
+    Occupied 
+}
