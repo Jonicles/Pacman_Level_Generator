@@ -54,116 +54,45 @@ public class TileSpriteHolder : MonoBehaviour
 
     public Sprite GetSprite(TileSprite tileSprite)
     {
-        Sprite sprite;
-
-        switch (tileSprite)
+        Sprite sprite = tileSprite switch
         {
             //Normal tiles
-            case TileSprite.Empty:
-                sprite = emptySprite;
-                break;
-            case TileSprite.Pellet:
-                sprite = pelletSprite;
-                break;
-            case TileSprite.Occupied:
-                sprite = occupiedSprite;
-                break;
-            case TileSprite.EdgeUp:
-                sprite = edgeUpSprite;
-                break;
-            case TileSprite.EdgeDown:
-                sprite = edgeDownSprite;
-                break;
-            case TileSprite.EdgeRight:
-                sprite = edgeRightSprite;
-                break;
-            case TileSprite.EdgeLeft:
-                sprite = edgeLeftSprite;
-                break;
-            case TileSprite.CornerDownLeft:
-                sprite = cornerDownLeftSprite;
-                break;
-            case TileSprite.CornerDownRight:
-                sprite = cornerDownRightSprite;
-                break;
-            case TileSprite.CornerUpLeft:
-                sprite = cornerUpLeftSprite;
-                break;
-            case TileSprite.CornerUpRight:
-                sprite = cornerUpRightSprite;
-                break;
-            case TileSprite.InverseCornerDownLeft:
-                sprite = inverseCornerDownLeftSprite;
-                break;
-            case TileSprite.InverseCornerDownRight:
-                sprite = inverseCornerDownRightSprite;
-                break;
-            case TileSprite.InverseCornerUpLeft:
-                sprite = inverserCornerUpLeftSprite;
-                break;
-            case TileSprite.InverseCornerUpRight:
-                sprite = inverseCornerUpRightSprite;
-                break;
-
-                //Unorthodox
-            case TileSprite.DoubleInverseForward:
-                sprite = doubleInverseForwardSprite;
-                break;
-            case TileSprite.DoubleInverseBackward:
-                sprite = doubleInverseBackwardSprite;
-                break;
-            case TileSprite.SoftCornerDownLeft:
-                sprite = SoftCornerDownLeftSprite;
-                break;
-            case TileSprite.SoftCornerDownRight:
-                sprite = SoftCornerDownRightSprite;
-                break;
-            case TileSprite.FunnelDownLeft:
-                sprite = FunnelDownLeftSprite;
-                break;
-            case TileSprite.FunnelDownRight:
-                sprite = FunnerlDownRightSprite;
-                break;
-
-                //Ghost
-            case TileSprite.GhostDoor:
-                sprite = ghostDoorSprite;
-                break;
-            case TileSprite.GhostDoorConnectorRight:
-                sprite = ghostDoorConnectorRightSprite;
-                break;
-            case TileSprite.GhostDoorConnectorLeft:
-                sprite = ghostDoorConnectorLeftSprite;
-                break;
-            case TileSprite.GhostBoxEdgeUp:
-                sprite = ghostBoxEdgeUpSprite;
-                break;
-            case TileSprite.GhostBoxEdgeDown:
-                sprite = ghostBoxEdgeDown;
-                break;
-            case TileSprite.GhostBoxEdgeLeft:
-                sprite = ghostBoxEdgeLeftSprite;
-                break;
-            case TileSprite.GhostBoxEdgeRight:
-                sprite = ghostBoxEdgeRightSprite;
-                break;
-            case TileSprite.GhostBoxCornerUpRight:
-                sprite = ghostBoxCornerUpRightSprite;
-                break;
-            case TileSprite.GhostBoxCornerUpLeft:
-                sprite = ghostBoxCornerUpLeftSprite;
-                break;
-            case TileSprite.GhostBoxCornerDownRight:
-                sprite = ghostBoxCornerDownRightSprite;
-                break;
-            case TileSprite.GhostBoxCornerDownLeft:
-                sprite = ghostBoxCornerDownLeftSprite;
-                break;
-            default:
-                sprite = occupiedSprite;
-                break;
-        }
-
+            TileSprite.Empty => emptySprite,
+            TileSprite.Pellet => pelletSprite,
+            TileSprite.Occupied => occupiedSprite,
+            TileSprite.EdgeUp => edgeUpSprite,
+            TileSprite.EdgeDown => edgeDownSprite,
+            TileSprite.EdgeRight => edgeRightSprite,
+            TileSprite.EdgeLeft => edgeLeftSprite,
+            TileSprite.CornerDownLeft => cornerDownLeftSprite,
+            TileSprite.CornerDownRight => cornerDownRightSprite,
+            TileSprite.CornerUpLeft => cornerUpLeftSprite,
+            TileSprite.CornerUpRight => cornerUpRightSprite,
+            TileSprite.InverseCornerDownLeft => inverseCornerDownLeftSprite,
+            TileSprite.InverseCornerDownRight => inverseCornerDownRightSprite,
+            TileSprite.InverseCornerUpLeft => inverserCornerUpLeftSprite,
+            TileSprite.InverseCornerUpRight => inverseCornerUpRightSprite,
+            //Unorthodox
+            TileSprite.DoubleInverseForward => doubleInverseForwardSprite,
+            TileSprite.DoubleInverseBackward => doubleInverseBackwardSprite,
+            TileSprite.SoftCornerDownLeft => SoftCornerDownLeftSprite,
+            TileSprite.SoftCornerDownRight => SoftCornerDownRightSprite,
+            TileSprite.FunnelDownLeft => FunnelDownLeftSprite,
+            TileSprite.FunnelDownRight => FunnerlDownRightSprite,
+            //Ghost
+            TileSprite.GhostDoor => ghostDoorSprite,
+            TileSprite.GhostDoorConnectorRight => ghostDoorConnectorRightSprite,
+            TileSprite.GhostDoorConnectorLeft => ghostDoorConnectorLeftSprite,
+            TileSprite.GhostBoxEdgeUp => ghostBoxEdgeUpSprite,
+            TileSprite.GhostBoxEdgeDown => ghostBoxEdgeDown,
+            TileSprite.GhostBoxEdgeLeft => ghostBoxEdgeLeftSprite,
+            TileSprite.GhostBoxEdgeRight => ghostBoxEdgeRightSprite,
+            TileSprite.GhostBoxCornerUpRight => ghostBoxCornerUpRightSprite,
+            TileSprite.GhostBoxCornerUpLeft => ghostBoxCornerUpLeftSprite,
+            TileSprite.GhostBoxCornerDownRight => ghostBoxCornerDownRightSprite,
+            TileSprite.GhostBoxCornerDownLeft => ghostBoxCornerDownLeftSprite,
+            _ => occupiedSprite,
+        };
         return sprite;
     }
 }

@@ -6,37 +6,37 @@ public struct Coordinate
     /// <summary>
     /// Shorthand for (0, 1)
     /// </summary>
-    public static Coordinate north { get; } = new Coordinate(0, 1);
+    public static Coordinate North { get; } = new Coordinate(0, 1);
     /// <summary>
     /// Shorthand for (1, 1)
     /// </summary>
-    public static Coordinate northEast { get; } = new Coordinate(1, 1);
+    public static Coordinate NorthEast { get; } = new Coordinate(1, 1);
     /// <summary>
     /// Shorthand for (1, 0)
     /// </summary>
-    public static Coordinate east { get; } = new Coordinate(1, 0);
+    public static Coordinate East { get; } = new Coordinate(1, 0);
     /// <summary>
     /// Shorthand for (1, -1)
     /// </summary>
-    public static Coordinate southEast { get; } = new Coordinate(1, -1);
+    public static Coordinate SouthEast { get; } = new Coordinate(1, -1);
     /// <summary>
     /// Shorthand for (0, -1)
     /// </summary>
-    public static Coordinate south { get; } = new Coordinate(0, -1);
+    public static Coordinate South { get; } = new Coordinate(0, -1);
     /// <summary>
     /// Shorthand for (-1, -1)
     /// </summary>
-    public static Coordinate southWest { get; } = new Coordinate(-1, -1);
+    public static Coordinate SouthWest { get; } = new Coordinate(-1, -1);
 
     /// <summary>
     /// Shorthand for (-1, 0)
     /// </summary>
-    public static Coordinate west { get; } = new Coordinate(-1, 0);
+    public static Coordinate West { get; } = new Coordinate(-1, 0);
 
     /// <summary>
     /// Shorthand for (-1, 1)
     /// </summary>
-    public static Coordinate northWest { get; } = new Coordinate(-1, 1);
+    public static Coordinate NorthWest { get; } = new Coordinate(-1, 1);
 
     public Coordinate(int x, int y)
     {
@@ -48,9 +48,9 @@ public struct Coordinate
         return $"({X}, {Y})";
     }
 
-    public static Coordinate operator +(Coordinate a, Coordinate b) => new Coordinate(a.X + b.X, a.Y + b.Y);
+    public static Coordinate operator +(Coordinate a, Coordinate b) => new(a.X + b.X, a.Y + b.Y);
 
-    public static Coordinate operator -(Coordinate a, Coordinate b) => new Coordinate(a.X - b.X, a.Y - b.Y);
+    public static Coordinate operator -(Coordinate a, Coordinate b) => new(a.X - b.X, a.Y - b.Y);
 
 
     public static bool operator ==(Coordinate a, Coordinate b)
@@ -65,7 +65,7 @@ public struct Coordinate
 
     public override bool Equals(object obj)
     {
-        if (!(obj is Coordinate coordinate))
+        if (obj is not Coordinate coordinate)
             return false;
 
         return (coordinate.X == this.X && coordinate.Y == this.Y);

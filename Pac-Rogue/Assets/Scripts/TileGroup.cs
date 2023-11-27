@@ -4,14 +4,14 @@ using System;
 public enum TileGroupShape
 {
     Plus,
-    TriangleUp,
-    TriangleDown,
-    TriangleRight,
-    TriangleLeft,
-    CornerUpRight,
-    CornerDownRight,
-    CornerUpLeft,
-    CornerDownLeft,
+    TriangleNorth,
+    TriangleSouth,
+    TriangleEast,
+    TriangleWest,
+    CornerNorthEast,
+    CornerSouthEast,
+    CornerNorthWest,
+    CornerSouthWest,
     VerticalLine,
     HorizontalLine,
     Empty,
@@ -44,10 +44,12 @@ public class TileGroup
 
     public void RemoveAvailableShapes(TileGroupShape[] shapes)
     {
+        if (AvailableShapes.Count == 1)
+            return;
+
         foreach (TileGroupShape shape in shapes)
         {
-            if (AvailableShapes.Count != 1)
-                AvailableShapes.Remove(shape);
+            AvailableShapes.Remove(shape);
         }
     }
 
@@ -62,16 +64,6 @@ public class TileGroup
 
     public void SetRandomDefiniteShape()
     {
-        //TileGroupShape shape = TileGroupShape.Empty;
-
-        //if (AvailableShapes.Count > 1)
-        //{
-        //    while (shape == TileGroupShape.Empty)
-        //    {
-        //        shape = ;
-        //    }
-        //}
-            SetDefiniteShape(AvailableShapes[UnityEngine.Random.Range(0, AvailableShapes.Count)]);
-
+        SetDefiniteShape(AvailableShapes[UnityEngine.Random.Range(0, AvailableShapes.Count)]);
     }
 }

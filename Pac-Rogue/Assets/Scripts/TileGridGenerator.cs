@@ -24,8 +24,8 @@ public class TileGridGenerator : MonoBehaviour
             {
                 currentGrid.DestroyGrid();
             }
-
             currentGrid = GenerateGrid(desiredWidth, desiredHeight);
+
         }
     }
     public TileGrid GenerateGrid(int desiredWidth, int desiredHeight)
@@ -44,7 +44,7 @@ public class TileGridGenerator : MonoBehaviour
 
         TileGrid grid = InstantiateTiles(desiredWidth, desiredHeight);
 
-        TransformTileStates(grid, tileGroupMatrix, desiredWidth, desiredHeight);
+        TransformTileStates(grid, tileGroupMatrix);
 
         //AddPelletsToWidth(grid, groupWidth);
 
@@ -58,101 +58,261 @@ public class TileGridGenerator : MonoBehaviour
 
         ConnectPaths(grid);
 
+        FindDisconnectedPath(grid);
+
         ChangeOccupiedTileSprites(grid);
 
         return grid;
     }
 
-    private void ConnectPaths(TileGrid grid)
+    private TileGroup[,] GenerateTileGroups(int width, int height)
     {
+        TileGroup[,] tileGroupMatrix = CreateTileGroupMatrix(width, height);
+        Dictionary<Coordinate, TileGroup> dict = new();
 
-        //for (int i = 0; i < grid.GetLength(1); i++)
-        //{
-        //    for (int i = 0; i < length; i++)
-        //    {
-
-        //    }
-        //}
-        for (int i = 0; i < grid.GetLength(0); i++)
+        for (int i = 0; i < width; i++)
         {
-            bool connected = false;
+            for (int j = 0; j < height; j++)
+                dict.Add(new Coordinate(i, j), tileGroupMatrix[i, j]);
+        }
 
-            for (int j = 0; j < grid.GetLength(1); j++)
+        RemoveShapesFromBorderGroups(tileGroupMatrix);
+
+        System.Random rand = new();
+        while (dict.Count > 0)
+        {
+            Coordinate startCoordinate = dict.ElementAt(rand.Next(0, dict.Count)).Key;
+            TileGroup startingTileGroup = tileGroupMatrix[startCoordinate.X, startCoordinate.Y];
+
+            if (!startingTileGroup.DefiniteShapeSet)
             {
-                Coordinate currentCoordinate = new Coordinate(i, j);
+                startingTileGroup.SetRandomDefiniteShape();
+                UpdateNeighboringTileGroups(startingTileGroup, startCoordinate, tileGroupMatrix);
+                dict.Remove(startCoordinate);
+            }
+        }
 
-                if (grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile northTile))
+        return tileGroupMatrix;
+    }
+    TileGroup[,] CreateTileGroupMatrix(int width, int height)
+    {
+        TileGroup[,] tileGroupMatrix = new TileGroup[width, height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+                tileGroupMatrix[i, j] = new TileGroup();
+        }
+
+        return tileGroupMatrix;
+    }
+    private void RemoveShapesFromBorderGroups(TileGroup[,] tileGroupMatrix)
+    {
+        for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
+        {
+            for (int j = 0; j < tileGroupMatrix.GetLength(1); j++)
+            {
+                TileGroup currentTileGroup = tileGroupMatrix[i, j];
+
+                //If any of these conditions are true it means it is a TileGroup on the border
+                //We will not remove shapes from tilegroups on the right side since we will later copy tiles over to the right side. 
+
+                if (i == 0)
                 {
-                    if (northTile.State != TileState.Occupied)
-                    {
-                        connected = true;
-                    }
+                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionWest);
+                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
+                }
+
+                if (j == 0)
+                {
+                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionSouth);
+                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
+
+                }
+
+                if (j == tileGroupMatrix.GetLength(1) - 1)
+                {
+                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionNorth);
+                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
                 }
             }
         }
     }
-
-    private void RemoveIncorrectTiles(TileGrid grid)
+    private void UpdateNeighboringTileGroups(TileGroup updatedGroup, Coordinate currentCoordinate, TileGroup[,] tileGroupMatrix)
     {
-        Dictionary<Coordinate, Tile> tilesToEmpty = new Dictionary<Coordinate, Tile>();
+        Coordinate northCoordinate = currentCoordinate + Coordinate.North;
+        Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+        Coordinate eastCoordinate = currentCoordinate + Coordinate.East;
+        Coordinate westCoordinate = currentCoordinate + Coordinate.West;
 
-        for (int i = 0; i < grid.GetLength(0); i++)
+
+        if (northCoordinate.Y < tileGroupMatrix.GetLength(1))
+            CompareShapes(updatedGroup, northCoordinate, Direction.North, tileGroupMatrix);
+
+        if (southCoordinate.Y >= 0)
+            CompareShapes(updatedGroup, southCoordinate, Direction.South, tileGroupMatrix);
+
+        if (eastCoordinate.X < tileGroupMatrix.GetLength(0))
+            CompareShapes(updatedGroup, eastCoordinate, Direction.East, tileGroupMatrix);
+
+        if (westCoordinate.X >= 0)
+            CompareShapes(updatedGroup, westCoordinate, Direction.West, tileGroupMatrix);
+    }
+    private void CompareShapes(TileGroup updatedGroup, Coordinate nextCoordinate, Direction directionToNextGroup, TileGroup[,] tileGroupMatrix)
+    {
+        TileGroup nextGroup = tileGroupMatrix[nextCoordinate.X, nextCoordinate.Y];
+
+        if (nextGroup.AvailableShapes.Count == 1)
+            return;
+
+        int previousShapeAmount = nextGroup.AvailableShapes.Count();
+
+        Dictionary<TileGroupShape, int> shapeCounter = new();
+
+        foreach (var shape in updatedGroup.AvailableShapes)
         {
-            for (int j = 0; j < grid.GetLength(1); j++)
+            foreach (var connectionShape in TileShapeRules.ShapesToRemove[new Tuple<TileGroupShape, Direction>(shape, directionToNextGroup)])
             {
-                Coordinate currentCoordinate = new Coordinate(i, j);
-                if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                if (!shapeCounter.ContainsKey(connectionShape))
                 {
-                    if (currentTile.State == TileState.Occupied)
+                    shapeCounter.Add(connectionShape, 1);
+                }
+                else
+                {
+                    shapeCounter[connectionShape]++;
+                }
+            }
+
+        }
+
+        List<TileGroupShape> shapesToRemove = new();
+
+        foreach (KeyValuePair<TileGroupShape, int> shapeCount in shapeCounter)
+        {
+            if (shapeCount.Value == updatedGroup.AvailableShapes.Count)
+            {
+                shapesToRemove.Add(shapeCount.Key);
+            }
+        }
+
+        nextGroup.RemoveAvailableShapes(shapesToRemove.ToArray());
+
+        if (previousShapeAmount > nextGroup.AvailableShapes.Count())
+            UpdateNeighboringTileGroups(nextGroup, nextCoordinate, tileGroupMatrix);
+    }
+
+    private TileGrid InstantiateTiles(int width, int height)
+    {
+        //GameObject parent = new GameObject();
+        //parent.name = "Grid";
+
+        TileGrid grid = new(width, height);
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Coordinate coordinate = new(i, j);
+
+                //GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity, parent.transform);
+                GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity);
+                newTile.name = coordinate.ToString();
+                grid.SetTile(coordinate, newTile);
+            }
+        }
+
+        return grid;
+    }
+    private void TransformTileStates(TileGrid grid, TileGroup[,] tileGroupMatrix)
+    {
+        for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
+        {
+            for (int j = 0; j < tileGroupMatrix.GetLength(1); j++)
+            {
+
+                bool[,] boolArray = TileShapeRules.GetShapeDefinition(tileGroupMatrix[i, j].DefiniteShape);
+
+                for (int k = 0; k < 3; k++)
+                {
+                    for (int l = 0; l < 3; l++)
                     {
-                        string code = DetermineTileCode(grid, currentCoordinate);
+                        Coordinate tileCoordinate = new(k + (i * tileGroupDimension), l + (j * tileGroupDimension));
 
-                        switch (code)
+                        if (grid.TryGetTile(tileCoordinate, out Tile tileComponent))
                         {
-                            case "101000010":
-                                Coordinate northCoordinate = currentCoordinate + Coordinate.north;
-                                Coordinate southCoordinate = currentCoordinate + Coordinate.south;
-
-                                if (!tilesToEmpty.ContainsKey(currentCoordinate))
-                                    tilesToEmpty.Add(currentCoordinate, currentTile);
-
-                                if (!tilesToEmpty.ContainsKey(northCoordinate))
-                                {
-                                    grid.TryGetTile(northCoordinate, out Tile northTile);
-                                    tilesToEmpty.Add(northCoordinate, northTile);
-                                }
-
-                                if (!tilesToEmpty.ContainsKey(southCoordinate))
-                                {
-                                    grid.TryGetTile(southCoordinate, out Tile southTile);
-                                    tilesToEmpty.Add(southCoordinate, southTile);
-                                }
-                                break;
-                            default:
-                                break;
+                            if (boolArray[k, l])
+                            {
+                                tileComponent.PlacePellet();
+                                grid.PelletAmount++;
+                            }
+                            else
+                            {
+                                tileComponent.OccupyTile();
+                            }
                         }
                     }
                 }
             }
         }
 
-        foreach (KeyValuePair<Coordinate, Tile> tileToEmpty in tilesToEmpty)
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            if (tileToEmpty.Key == new Coordinate(10, 15) ||
-                tileToEmpty.Key == new Coordinate(10, 16) ||
-                tileToEmpty.Key == new Coordinate(10, 17) ||
-                tileToEmpty.Key == new Coordinate(17, 15) ||
-                tileToEmpty.Key == new Coordinate(17, 16) ||
-                tileToEmpty.Key == new Coordinate(17, 17))
-                continue;
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                grid.TryGetTile(new Coordinate(i, j), out Tile tile);
 
-            tileToEmpty.Value.EmptyTile();
+                if (tile.State == TileState.Empty)
+                    tile.OccupyTile();
+            }
         }
+    }
+    private void CopyTilesToRightSide(TileGrid grid)
+    {
+        for (int i = 0; i < grid.GetLength(0) * 0.5f; i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                if (grid.TryGetTile(new Coordinate(i, j), out Tile tileToCopy))
+                {
+                    if (grid.TryGetTile(GetMirroredCoordinate(grid, i, j), out Tile newTile))
+                    {
+                        switch (tileToCopy.State)
+                        {
+                            case TileState.Empty:
+                                newTile.EmptyTile();
+                                break;
+                            case TileState.Pellet:
+                                newTile.PlacePellet();
+                                grid.PelletAmount++;
+                                break;
+                            case TileState.Occupied:
+                                newTile.OccupyTile();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        print("Trying to access non existent tile 2");
+                    }
+                }
+                else
+                {
+                    print("Trying to acces non existent tile");
+                }
+            }
+        }
+    }
+
+    private Coordinate GetMirroredCoordinate(TileGrid grid, int x, int y)
+    {
+        return new Coordinate((grid.GetLength(0) - 1) - x, y);
     }
 
     private void CreateGhostBox(TileGrid grid)
     {
-        GhostBox box = new GhostBox();
+        GhostBox box = new();
 
         int halfHeight = /*(int)(0.5f * (grid.GetLength(1) - 1))*/15;
         int halfWidth = /*(int)(0.5f * grid.GetLength(0))*/14;
@@ -161,7 +321,7 @@ public class TileGridGenerator : MonoBehaviour
         int ghostBoxHalfHeight = 5;
         int ghostBoxHalfWidth = 7;
 
-        Coordinate startCoordinate = new Coordinate(halfWidth - ghostBoxHalfWidth, halfHeight - ghostBoxHalfHeight + 1);
+        Coordinate startCoordinate = new(halfWidth - ghostBoxHalfWidth, halfHeight - ghostBoxHalfHeight + 1);
 
         for (int i = 0; i < ghostBoxWidth; i++)
         {
@@ -298,8 +458,7 @@ public class TileGridGenerator : MonoBehaviour
         AddPelletsToWidth(grid);
         AddPelletsToHeight(grid);
     }
-
-    private void AddPelletsToHeight(TileGrid grid)
+    private void AddPelletsToWidth(TileGrid grid)
     {
         bool reUpdate = false;
 
@@ -310,7 +469,67 @@ public class TileGridGenerator : MonoBehaviour
             {
                 for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    Coordinate currentCoordinate = new Coordinate(i, j);
+                    Coordinate currentCoordinate = new(i, j);
+                    if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    {
+                        if (currentTile.State == TileState.Occupied)
+                        {
+                            string code = DetermineTileCode(grid, currentCoordinate);
+
+                            switch (code)
+                            {
+                                //Left
+                                case "111110111":
+                                    currentTile.PlacePellet();
+                                    if (grid.TryGetTile(currentCoordinate + Coordinate.West, out Tile westTile))
+                                        westTile.PlacePellet();
+                                    reUpdate = true;
+                                    break;
+                                case "101100011":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111100011":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "101100111":
+                                    currentTile.PlacePellet();
+                                    break;
+                                //Right
+                                case "111101111":
+                                    currentTile.PlacePellet();
+                                    if (grid.TryGetTile(currentCoordinate + Coordinate.East, out Tile eastTile))
+                                        eastTile.PlacePellet();
+                                    break;
+                                case "111000110":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111100110":
+                                    currentTile.PlacePellet();
+                                    break;
+                                case "111000111":
+                                    currentTile.PlacePellet();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        } while (reUpdate);
+    }
+    private void AddPelletsToHeight(TileGrid grid)
+    {
+        bool reUpdate;
+
+        do
+        {
+            reUpdate = false;
+            for (int i = 0; i < grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    Coordinate currentCoordinate = new(i, j);
                     if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
                     {
                         if (currentTile.State == TileState.Occupied)
@@ -320,7 +539,6 @@ public class TileGridGenerator : MonoBehaviour
                             switch (code)
                             {
                                 case "110111111":
-                                    print("Placing Pellets Down");
                                     currentTile.PlacePellet();
 
                                     bool shouldPlacePelletsDown = true;
@@ -329,23 +547,18 @@ public class TileGridGenerator : MonoBehaviour
 
                                     while (insideGridDown && shouldPlacePelletsDown)
                                     {
-                                        Tile southTile;
-                                        Tile eastWhenSouthTile;
-                                        Tile westWhenSouthTile;
+                                        bool northExists = grid.TryGetTile(currentCoordinate + Coordinate.South, out Tile southTile);
+                                        bool eastExists = grid.TryGetTile(currentCoordinate + Coordinate.East, out Tile eastWhenSouthTile);
+                                        bool westExists = grid.TryGetTile(currentCoordinate + Coordinate.West, out Tile westWhenSouthTile);
 
-
-                                        bool workAround1 = grid.TryGetTile(currentCoordinate + Coordinate.south, out southTile);
-                                        bool workAround2 = grid.TryGetTile(currentCoordinate + Coordinate.east, out eastWhenSouthTile);
-                                        bool workAround3 = grid.TryGetTile(currentCoordinate + Coordinate.west, out westWhenSouthTile);
-
-                                        insideGridDown = workAround1 && workAround2 && workAround3;
+                                        insideGridDown = northExists && eastExists && westExists;
 
                                         if (insideGridDown)
                                         {
                                             if ((eastWhenSouthTile.State == TileState.Occupied && westWhenSouthTile.State == TileState.Occupied && southTile.State == TileState.Occupied))
                                             {
                                                 southTile.PlacePellet();
-                                                currentCoordinate += Coordinate.south;
+                                                currentCoordinate += Coordinate.South;
                                             }
                                             else
                                             {
@@ -358,7 +571,6 @@ public class TileGridGenerator : MonoBehaviour
                                     reUpdate = true;
                                     break;
                                 case "111111101":
-                                    print("Placing Pellets Up");
                                     currentTile.PlacePellet();
 
                                     bool shouldPlacePelletsUp = true;
@@ -367,23 +579,18 @@ public class TileGridGenerator : MonoBehaviour
 
                                     while (insideGridUp && shouldPlacePelletsUp)
                                     {
-                                        Tile northTile;
-                                        Tile eastWhenSouthTile;
-                                        Tile westWhenSouthTile;
+                                        bool northExists = grid.TryGetTile(currentCoordinate + Coordinate.North, out Tile northTile);
+                                        bool eastExists = grid.TryGetTile(currentCoordinate + Coordinate.East, out Tile eastWhenSouthTile);
+                                        bool westExists = grid.TryGetTile(currentCoordinate + Coordinate.West, out Tile westWhenSouthTile);
 
-
-                                        bool workAround1 = grid.TryGetTile(currentCoordinate + Coordinate.north, out northTile);
-                                        bool workAround2 = grid.TryGetTile(currentCoordinate + Coordinate.east, out eastWhenSouthTile);
-                                        bool workAround3 = grid.TryGetTile(currentCoordinate + Coordinate.west, out westWhenSouthTile);
-
-                                        insideGridUp = workAround1 && workAround2 && workAround3;
+                                        insideGridUp = northExists && eastExists && westExists;
 
                                         if (insideGridUp)
                                         {
                                             if ((eastWhenSouthTile.State == TileState.Occupied && westWhenSouthTile.State == TileState.Occupied && northTile.State == TileState.Occupied))
                                             {
                                                 northTile.PlacePellet();
-                                                currentCoordinate += Coordinate.north;
+                                                currentCoordinate += Coordinate.North;
                                             }
                                             else
                                             {
@@ -405,67 +612,289 @@ public class TileGridGenerator : MonoBehaviour
         } while (reUpdate);
     }
 
-    private void AddPelletsToWidth(TileGrid grid)
+    private void RemoveIncorrectTiles(TileGrid grid)
     {
-        bool reUpdate = false;
+        Dictionary<Coordinate, Tile> tilesToEmpty = new();
 
-        do
+        for (int i = 0; i < grid.GetLength(0); i++)
         {
-            reUpdate = false;
-            for (int i = 0; i < grid.GetLength(0); i++)
+            for (int j = 0; j < grid.GetLength(1); j++)
             {
-                for (int j = 0; j < grid.GetLength(1); j++)
+                Coordinate currentCoordinate = new(i, j);
+                if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
                 {
-                    Coordinate currentCoordinate = new Coordinate(i, j);
-                    if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    if (currentTile.State == TileState.Occupied)
                     {
-                        if (currentTile.State == TileState.Occupied)
-                        {
-                            string code = DetermineTileCode(grid, currentCoordinate);
+                        string code = DetermineTileCode(grid, currentCoordinate);
 
-                            switch (code)
-                            {
-                                //Left
-                                case "111110111":
-                                    print("Placing left");
-                                    currentTile.PlacePellet();
-                                    if (grid.TryGetTile(currentCoordinate + Coordinate.west, out Tile westTile))
-                                        westTile.PlacePellet();
-                                    reUpdate = true;
-                                    break;
-                                case "101100011":
-                                    currentTile.PlacePellet();
-                                    break;
-                                case "111100011":
-                                    currentTile.PlacePellet();
-                                    break;
-                                case "101100111":
-                                    currentTile.PlacePellet();
-                                    break;
-                                //Right
-                                case "111101111":
-                                    print("Placing right");
-                                    currentTile.PlacePellet();
-                                    if (grid.TryGetTile(currentCoordinate + Coordinate.east, out Tile eastTile))
-                                        eastTile.PlacePellet();
-                                    break;
-                                case "111000110":
-                                    currentTile.PlacePellet();
-                                    break;
-                                case "111100110":
-                                    currentTile.PlacePellet();
-                                    break;
-                                case "111000111":
-                                    currentTile.PlacePellet();
-                                    break;
-                                default:
-                                    break;
-                            }
+                        switch (code)
+                        {
+                            case "101000010":
+                                Coordinate northCoordinate = currentCoordinate + Coordinate.North;
+                                Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+
+                                if (!tilesToEmpty.ContainsKey(currentCoordinate))
+                                    tilesToEmpty.Add(currentCoordinate, currentTile);
+
+                                if (!tilesToEmpty.ContainsKey(northCoordinate))
+                                {
+                                    grid.TryGetTile(northCoordinate, out Tile northTile);
+                                    tilesToEmpty.Add(northCoordinate, northTile);
+                                }
+
+                                if (!tilesToEmpty.ContainsKey(southCoordinate))
+                                {
+                                    grid.TryGetTile(southCoordinate, out Tile southTile);
+                                    tilesToEmpty.Add(southCoordinate, southTile);
+                                }
+                                break;
+                            default:
+                                break;
                         }
                     }
                 }
             }
-        } while (reUpdate);
+        }
+
+        foreach (KeyValuePair<Coordinate, Tile> tileToEmpty in tilesToEmpty)
+        {
+            if (tileToEmpty.Key == new Coordinate(10, 15) ||
+                tileToEmpty.Key == new Coordinate(10, 16) ||
+                tileToEmpty.Key == new Coordinate(10, 17) ||
+                tileToEmpty.Key == new Coordinate(17, 15) ||
+                tileToEmpty.Key == new Coordinate(17, 16) ||
+                tileToEmpty.Key == new Coordinate(17, 17))
+                continue;
+
+            tileToEmpty.Value.EmptyTile();
+        }
+    }
+
+
+    private void FindDisconnectedPath(TileGrid grid)
+    {
+        HashSet<Coordinate> connectedTiles = new HashSet<Coordinate>();
+        bool disconnected = false;
+
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                Coordinate currentCoordinate = new Coordinate(i, j);
+
+                if (connectedTiles.Contains(currentCoordinate))
+                    continue;
+
+                if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    continue;
+
+                if (currentTile.State == TileState.Occupied)
+                    continue;
+
+                if (!disconnected)
+                {
+                    connectedTiles = FindConnectedTiles(connectedTiles, grid, currentCoordinate);
+                }
+                else
+                {
+                    connectedTiles = FindConnectedTiles(connectedTiles, grid, currentCoordinate);
+                    TestMethod(connectedTiles, grid);
+                }
+            }
+        }
+    }
+
+    private void TestMethod(HashSet<Coordinate> connectedTiles, TileGrid grid)
+    {
+        List<Coordinate> connectableCoordinates = new();
+
+        foreach (var coordinate in connectedTiles)
+        {
+            if (coordinate.X < grid.GetLength(0) * 0.5f && coordinate.X % tileGroupDimension == 1 && coordinate.Y % tileGroupDimension == 3)
+                connectableCoordinates.Add(coordinate);
+        }
+
+        foreach (var coordinate in connectableCoordinates)
+        {
+            FindClosestPossibleConnection(grid, coordinate);
+        }
+    }
+
+    private void FindClosestPossibleConnection(TileGrid grid, Coordinate coordinate)
+    {
+        bool northConnection = FindValidConnectionAndLength(grid, coordinate, Direction.North, out int length);
+    }
+
+    private bool FindValidConnectionAndLength(TileGrid grid, Coordinate coordinate, Direction currentDirection, out int length)
+    {
+        Coordinate coordinateDirection = new();
+
+        switch (currentDirection)
+        {
+            case Direction.North:
+                coordinateDirection = Coordinate.North;
+                break;
+            case Direction.South:
+                coordinateDirection = Coordinate.South;
+                break;
+            case Direction.East:
+                coordinateDirection = Coordinate.East;
+                break;
+            case Direction.West:
+                coordinateDirection = Coordinate.West;
+                break;
+            default:
+                break;
+        }
+
+        length = 0;
+        Coordinate nextCoordinate = coordinate + coordinateDirection;
+
+        while (grid.TryGetTile(nextCoordinate, out Tile nextTile))
+        {
+            if (nextTile.State == TileState.Occupied)
+                length++;
+            else
+                return true;
+
+            nextCoordinate += coordinateDirection;
+        }
+
+        return false;
+    }
+
+    private HashSet<Coordinate> FindConnectedTiles(HashSet<Coordinate> connectedCoordinates, TileGrid grid, Coordinate startCoordinate)
+    {
+        connectedCoordinates.Add(startCoordinate);
+
+        Coordinate northCoordinate = startCoordinate + Coordinate.North;
+        Coordinate southCoordinate = startCoordinate + Coordinate.South;
+        Coordinate westCoordinate = startCoordinate + Coordinate.West;
+        Coordinate eastCoordinate = startCoordinate + Coordinate.East;
+
+
+        if (grid.TryGetTile(northCoordinate, out Tile northTile))
+        {
+            if (northTile.State != TileState.Occupied && !connectedCoordinates.Contains(northCoordinate))
+                FindConnectedTiles(connectedCoordinates, grid, northCoordinate);
+        }
+        if (grid.TryGetTile(southCoordinate, out Tile southTile))
+        {
+            if (southTile.State != TileState.Occupied && !connectedCoordinates.Contains(southCoordinate))
+                FindConnectedTiles(connectedCoordinates, grid, southCoordinate);
+        }
+        if (grid.TryGetTile(westCoordinate, out Tile westTile))
+        {
+            if (westTile.State != TileState.Occupied && !connectedCoordinates.Contains(westCoordinate))
+                FindConnectedTiles(connectedCoordinates, grid, westCoordinate);
+        }
+        if (grid.TryGetTile(eastCoordinate, out Tile eastTile))
+        {
+            if (eastTile.State != TileState.Occupied && !connectedCoordinates.Contains(eastCoordinate))
+                FindConnectedTiles(connectedCoordinates, grid, eastCoordinate);
+        }
+
+        return connectedCoordinates;
+    }
+
+    private void ConnectPaths(TileGrid grid)
+    {
+        // .......
+        // ->.....
+        bool disconnected;
+
+        for (int i = 0; i < grid.GetLength(1); i++)
+        {
+            disconnected = true;
+
+            for (int j = 0; j < grid.GetLength(0); j++)
+            {
+                Coordinate currentCoordinate = new(j, i);
+
+                if (grid.TryGetTile(currentCoordinate + Coordinate.North, out Tile northTile))
+                {
+                    if (northTile.State != TileState.Occupied)
+                    {
+                        disconnected = false;
+                    }
+                }
+            }
+
+            if (disconnected)
+            {
+                ConnectVertically(grid, i);
+            }
+        }
+    }
+    private void ConnectVertically(TileGrid grid, int row)
+    {
+        print($"Want to connect row: {row}");
+        List<Coordinate> allowedCoordinateConnection = new();
+
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            Coordinate currentCoordinate = new(i, row);
+
+            if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                continue;
+
+            if (currentTile.State != TileState.Occupied)
+            {
+                bool eligibleForConnection = i % tileGroupDimension == 1;
+
+                if (eligibleForConnection)
+                    allowedCoordinateConnection.Add(currentCoordinate);
+            }
+        }
+
+        float shortestPathLength = Mathf.Infinity;
+        Coordinate coordToUse = new();
+
+        foreach (var coordinate in allowedCoordinateConnection)
+        {
+            float tempLenght = CheckLengthToNearestPellet(grid, coordinate);
+
+            if (tempLenght < shortestPathLength)
+            {
+                coordToUse = coordinate;
+                shortestPathLength = tempLenght;
+            }
+        }
+
+        if (shortestPathLength == Mathf.Infinity)
+            return;
+
+        print($"Placing pellets for coordinate: {coordToUse}");
+        for (int i = 1; i <= shortestPathLength; i++)
+        {
+            Coordinate coordToPlacePelletOn = new Coordinate(coordToUse.X, coordToUse.Y + i);
+            if (grid.TryGetTile(coordToPlacePelletOn, out Tile tile))
+            {
+                print($"placing on coordinate: ({coordToPlacePelletOn.X}, {coordToPlacePelletOn.Y})");
+                tile.PlacePellet();
+
+                if (grid.TryGetTile(GetMirroredCoordinate(grid, coordToPlacePelletOn.X, coordToPlacePelletOn.Y), out Tile mirroredTile))
+                    mirroredTile.PlacePellet();
+
+            }
+        }
+    }
+    private float CheckLengthToNearestPellet(TileGrid grid, Coordinate coordinate)
+    {
+        int length = 0;
+        Coordinate nextCoordinate = coordinate + Coordinate.North;
+
+        while (grid.TryGetTile(nextCoordinate, out Tile nextTile))
+        {
+            if (nextTile.State == TileState.Occupied)
+                length++;
+            else
+                return length;
+
+            nextCoordinate += Coordinate.North;
+        }
+
+        return Mathf.Infinity;
     }
 
     private void ChangeOccupiedTileSprites(TileGrid grid)
@@ -474,7 +903,7 @@ public class TileGridGenerator : MonoBehaviour
         {
             for (int j = 0; j < grid.GetLength(1); j++)
             {
-                Coordinate currentCoordinate = new Coordinate(i, j);
+                Coordinate currentCoordinate = new(i, j);
                 if (grid.TryGetTile(currentCoordinate, out Tile currentTile))
                 {
                     if (currentTile.State == TileState.Occupied)
@@ -490,7 +919,49 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
     }
+    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
+    {
+        Coordinate northWestCoordinate = currentCoordinate + Coordinate.NorthWest;
+        Coordinate northCoordinate = currentCoordinate + Coordinate.North;
+        Coordinate northEastCoordinate = currentCoordinate + Coordinate.NorthEast;
+        Coordinate eastCoordinate = currentCoordinate + Coordinate.East;
+        Coordinate southEastCoordinate = currentCoordinate + Coordinate.SouthEast;
+        Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+        Coordinate southWestCoordinate = currentCoordinate + Coordinate.SouthWest;
+        Coordinate westCoordinate = currentCoordinate + Coordinate.West;
 
+        List<Coordinate> coordinates = new()
+        {
+            currentCoordinate,
+            northWestCoordinate,
+            northCoordinate,
+            northEastCoordinate,
+            westCoordinate,
+            eastCoordinate,
+            southWestCoordinate,
+            southCoordinate,
+            southEastCoordinate,
+        };
+
+        //1 will equal occupied tile, 0 will equal unocccupied
+        string code = "";
+
+        for (int i = 0; i < coordinates.Count; i++)
+        {
+            if (grid.TryGetTile(coordinates[i], out Tile tile))
+            {
+                if (tile.State == TileState.Occupied)
+                    code += 1;
+                else
+                    code += 0;
+            }
+            else
+                //If tile is outside grid
+                code += 1;
+        }
+
+        return code;
+    }
     private bool TryGetTileSprite(string code, out TileSprite tileSprite)
     {
         tileSprite = TileSprite.Occupied;
@@ -632,295 +1103,5 @@ public class TileGridGenerator : MonoBehaviour
         }
 
         return true;
-    }
-
-    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
-    {
-        Coordinate northWestCoordinate = currentCoordinate + Coordinate.northWest;
-        Coordinate northCoordinate = currentCoordinate + Coordinate.north;
-        Coordinate northEastCoordinate = currentCoordinate + Coordinate.northEast;
-        Coordinate eastCoordinate = currentCoordinate + Coordinate.east;
-        Coordinate southEastCoordinate = currentCoordinate + Coordinate.southEast;
-        Coordinate southCoordinate = currentCoordinate + Coordinate.south;
-        Coordinate southWestCoordinate = currentCoordinate + Coordinate.southWest;
-        Coordinate westCoordinate = currentCoordinate + Coordinate.west;
-
-        List<Coordinate> coordinates = new List<Coordinate>()
-        {
-            currentCoordinate,
-            northWestCoordinate,
-            northCoordinate,
-            northEastCoordinate,
-            westCoordinate,
-            eastCoordinate,
-            southWestCoordinate,
-            southCoordinate,
-            southEastCoordinate,
-        };
-
-        //1 will equal occupied tile, 0 will equal unocccupied
-        string code = "";
-
-        for (int i = 0; i < coordinates.Count; i++)
-        {
-            if (grid.TryGetTile(coordinates[i], out Tile tile))
-            {
-                if (tile.State == TileState.Occupied)
-                    code += 1;
-                else
-                    code += 0;
-            }
-            else
-                //If tile is outside grid
-                code += 1;
-        }
-
-        return code;
-    }
-
-    private void TransformTileStates(TileGrid grid, TileGroup[,] tileGroupMatrix, int desiredDimensionX, int desiredDimensionY)
-    {
-        for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
-        {
-            for (int j = 0; j < tileGroupMatrix.GetLength(1); j++)
-            {
-
-                bool[,] boolArray = TileShapeRules.GetShapeDefinition(tileGroupMatrix[i, j].DefiniteShape);
-
-                for (int k = 0; k < 3; k++)
-                {
-                    for (int l = 0; l < 3; l++)
-                    {
-                        Coordinate tileCoordinate = new Coordinate(k + (i * tileGroupDimension), l + (j * tileGroupDimension));
-
-                        if (grid.TryGetTile(tileCoordinate, out Tile tileComponent))
-                        {
-                            if (boolArray[k, l])
-                            {
-                                tileComponent.PlacePellet();
-                                grid.PelletAmount++;
-                            }
-                            else
-                            {
-                                tileComponent.OccupyTile();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < grid.GetLength(0); i++)
-        {
-            for (int j = 0; j < grid.GetLength(1); j++)
-            {
-                grid.TryGetTile(new Coordinate(i, j), out Tile tile);
-
-                if (tile.State == TileState.Empty)
-                    tile.OccupyTile();
-            }
-        }
-    }
-
-    private TileGrid InstantiateTiles(int width, int height)
-    {
-        //GameObject parent = new GameObject();
-        //parent.name = "Grid";
-
-        TileGrid grid = new TileGrid(width, height);
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                Coordinate coordinate = new Coordinate(i, j);
-
-                //GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity, parent.transform);
-                GameObject newTile = Instantiate(tilePrefab, new Vector3(coordinate.X, coordinate.Y), Quaternion.identity);
-                newTile.name = coordinate.ToString();
-                grid.SetTile(coordinate, newTile);
-            }
-        }
-
-        return grid;
-    }
-
-    private TileGroup[,] GenerateTileGroups(int width, int height)
-    {
-        TileGroup[,] tileGroupMatrix = CreateTileGroupMatrix(width, height);
-        Dictionary<Coordinate, TileGroup> dict = new Dictionary<Coordinate, TileGroup>();
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-                dict.Add(new Coordinate(i, j), tileGroupMatrix[i, j]);
-        }
-
-        RemoveShapesFromBorderGroups(tileGroupMatrix);
-
-        System.Random rand = new System.Random();
-        while (dict.Count > 0)
-        {
-            Coordinate startCoordinate = dict.ElementAt(rand.Next(0, dict.Count)).Key;
-            TileGroup startingTileGroup = tileGroupMatrix[startCoordinate.X, startCoordinate.Y];
-
-            if (!startingTileGroup.DefiniteShapeSet)
-            {
-                startingTileGroup.SetRandomDefiniteShape();
-                UpdateNeighboringTileGroups(startingTileGroup, startCoordinate, tileGroupMatrix);
-                dict.Remove(startCoordinate);
-            }
-        }
-
-        return tileGroupMatrix;
-    }
-
-    private void RemoveShapesFromBorderGroups(TileGroup[,] tileGroupMatrix)
-    {
-        for (int i = 0; i < tileGroupMatrix.GetLength(0); i++)
-        {
-            for (int j = 0; j < tileGroupMatrix.GetLength(1); j++)
-            {
-                TileGroup currentTileGroup = tileGroupMatrix[i, j];
-
-                //If any of these conditions are true it means it is a TileGroup on the border
-                //We will not remove shapes from tilegroups on the right side since we will later copy tiles over to the right side. 
-
-                if (i == 0)
-                {
-                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionLeft);
-                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
-                }
-
-                if (j == 0)
-                {
-                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionDown);
-                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
-
-                }
-
-                if (j == tileGroupMatrix.GetLength(1) - 1)
-                {
-                    currentTileGroup.RemoveAvailableShapes(TileShapeRules.ConnectionUp);
-                    UpdateNeighboringTileGroups(currentTileGroup, new Coordinate(i, j), tileGroupMatrix);
-                }
-            }
-        }
-    }
-
-    private void UpdateNeighboringTileGroups(TileGroup updatedGroup, Coordinate currentCoordinate, TileGroup[,] tileGroupMatrix)
-    {
-        Coordinate northCoordinate = currentCoordinate + Coordinate.north;
-        Coordinate southCoordinate = currentCoordinate + Coordinate.south;
-        Coordinate eastCoordinate = currentCoordinate + Coordinate.east;
-        Coordinate westCoordinate = currentCoordinate + Coordinate.west;
-
-
-        if (northCoordinate.Y < tileGroupMatrix.GetLength(1))
-            CompareShapes(updatedGroup, northCoordinate, Direction.Up, tileGroupMatrix);
-
-        if (southCoordinate.Y >= 0)
-            CompareShapes(updatedGroup, southCoordinate, Direction.Down, tileGroupMatrix);
-
-        if (eastCoordinate.X < tileGroupMatrix.GetLength(0))
-            CompareShapes(updatedGroup, eastCoordinate, Direction.Right, tileGroupMatrix);
-
-        if (westCoordinate.X >= 0)
-            CompareShapes(updatedGroup, westCoordinate, Direction.Left, tileGroupMatrix);
-    }
-
-    private void CompareShapes(TileGroup updatedGroup, Coordinate nextCoordinate, Direction directionToNextGroup, TileGroup[,] tileGroupMatrix)
-    {
-        TileGroup nextGroup = tileGroupMatrix[nextCoordinate.X, nextCoordinate.Y];
-
-        if (nextGroup.AvailableShapes.Count == 1)
-            return;
-
-        int previousShapeAmount = nextGroup.AvailableShapes.Count();
-
-        Dictionary<TileGroupShape, int> shapeCounter = new Dictionary<TileGroupShape, int>();
-
-        foreach (var shape in updatedGroup.AvailableShapes)
-        {
-            foreach (var connectionShape in TileShapeRules.ShapesToRemove[new Tuple<TileGroupShape, Direction>(shape, directionToNextGroup)])
-            {
-                if (!shapeCounter.ContainsKey(connectionShape))
-                {
-                    shapeCounter.Add(connectionShape, 1);
-                }
-                else
-                {
-                    shapeCounter[connectionShape]++;
-                }
-            }
-
-        }
-
-        List<TileGroupShape> shapesToRemove = new List<TileGroupShape>();
-
-        foreach (KeyValuePair<TileGroupShape, int> shapeCount in shapeCounter)
-        {
-            if (shapeCount.Value == updatedGroup.AvailableShapes.Count)
-            {
-                shapesToRemove.Add(shapeCount.Key);
-            }
-        }
-
-        nextGroup.RemoveAvailableShapes(shapesToRemove.ToArray());
-
-        if (previousShapeAmount > nextGroup.AvailableShapes.Count())
-            UpdateNeighboringTileGroups(nextGroup, nextCoordinate, tileGroupMatrix);
-    }
-
-    TileGroup[,] CreateTileGroupMatrix(int width, int height)
-    {
-        TileGroup[,] tileGroupMatrix = new TileGroup[width, height];
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-                tileGroupMatrix[i, j] = new TileGroup();
-        }
-
-        return tileGroupMatrix;
-    }
-
-    private void CopyTilesToRightSide(TileGrid grid)
-    {
-        for (int i = 0; i < grid.GetLength(0) * 0.5f; i++)
-        {
-            for (int j = 0; j < grid.GetLength(1); j++)
-            {
-                if (grid.TryGetTile(new Coordinate(i, j), out Tile tileToCopy))
-                {
-                    if (grid.TryGetTile(new Coordinate((grid.GetLength(0) - 1) - i, j), out Tile newTile))
-                    {
-                        switch (tileToCopy.State)
-                        {
-                            case TileState.Empty:
-                                newTile.EmptyTile();
-                                break;
-                            case TileState.Pellet:
-                                newTile.PlacePellet();
-                                grid.PelletAmount++;
-                                break;
-                            case TileState.Occupied:
-                                newTile.OccupyTile();
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        print("Trying to access non existent tile 2");
-                    }
-                }
-                else
-                {
-                    print("Trying to acces non existent tile");
-                }
-            }
-        }
     }
 }

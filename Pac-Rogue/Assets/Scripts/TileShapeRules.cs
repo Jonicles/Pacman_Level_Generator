@@ -3,187 +3,158 @@ using System.Collections.Generic;
 
 public enum Direction
 {
-    Up,
-    Down,
-    Right,
-    Left
+    North,
+    South,
+    East,
+    West
 }
 
 public static class TileShapeRules
 {
-    public static TileGroupShape[] ConnectionUp = { TileGroupShape.Plus, TileGroupShape.TriangleUp, TileGroupShape.TriangleRight, TileGroupShape.TriangleLeft, TileGroupShape.CornerUpRight, TileGroupShape.CornerUpLeft, TileGroupShape.VerticalLine};
-    public static TileGroupShape[] NoConnectionUp = { TileGroupShape.TriangleDown, TileGroupShape.CornerDownRight, TileGroupShape.CornerDownLeft, TileGroupShape.HorizontalLine, TileGroupShape.Empty };
+    public static TileGroupShape[] ConnectionNorth = { TileGroupShape.Plus, TileGroupShape.TriangleNorth, TileGroupShape.TriangleEast, TileGroupShape.TriangleWest, TileGroupShape.CornerNorthEast, TileGroupShape.CornerNorthWest, TileGroupShape.VerticalLine};
+    public static TileGroupShape[] NoConnectionNorth = { TileGroupShape.TriangleSouth, TileGroupShape.CornerSouthEast, TileGroupShape.CornerSouthWest, TileGroupShape.HorizontalLine, TileGroupShape.Empty };
 
-    public static TileGroupShape[] ConnectionDown = { TileGroupShape.Plus, TileGroupShape.TriangleDown, TileGroupShape.TriangleRight, TileGroupShape.TriangleLeft, TileGroupShape.CornerDownRight, TileGroupShape.CornerDownLeft, TileGroupShape.VerticalLine};
-    public static TileGroupShape[] NoConnectionDown = { TileGroupShape.TriangleUp, TileGroupShape.CornerUpRight, TileGroupShape.CornerUpLeft, TileGroupShape.HorizontalLine, TileGroupShape.Empty };
+    public static TileGroupShape[] ConnectionSouth = { TileGroupShape.Plus, TileGroupShape.TriangleSouth, TileGroupShape.TriangleEast, TileGroupShape.TriangleWest, TileGroupShape.CornerSouthEast, TileGroupShape.CornerSouthWest, TileGroupShape.VerticalLine};
+    public static TileGroupShape[] NoConnectionSouth = { TileGroupShape.TriangleNorth, TileGroupShape.CornerNorthEast, TileGroupShape.CornerNorthWest, TileGroupShape.HorizontalLine, TileGroupShape.Empty };
 
-    public static TileGroupShape[] ConnectionRight = { TileGroupShape.Plus, TileGroupShape.TriangleUp, TileGroupShape.TriangleDown, TileGroupShape.TriangleRight, TileGroupShape.CornerUpRight, TileGroupShape.CornerDownRight, TileGroupShape.HorizontalLine};
-    public static TileGroupShape[] NoConnectionRight = { TileGroupShape.TriangleLeft, TileGroupShape.CornerUpLeft, TileGroupShape.CornerDownLeft, TileGroupShape.VerticalLine, TileGroupShape.Empty };
+    public static TileGroupShape[] ConnectionEast = { TileGroupShape.Plus, TileGroupShape.TriangleNorth, TileGroupShape.TriangleSouth, TileGroupShape.TriangleEast, TileGroupShape.CornerNorthEast, TileGroupShape.CornerSouthEast, TileGroupShape.HorizontalLine};
+    public static TileGroupShape[] NoConnectionEast = { TileGroupShape.TriangleWest, TileGroupShape.CornerNorthWest, TileGroupShape.CornerSouthWest, TileGroupShape.VerticalLine, TileGroupShape.Empty };
 
-    public static TileGroupShape[] ConnectionLeft = { TileGroupShape.Plus, TileGroupShape.TriangleUp, TileGroupShape.TriangleDown, TileGroupShape.TriangleLeft, TileGroupShape.CornerUpLeft, TileGroupShape.CornerDownLeft, TileGroupShape.HorizontalLine};
-    public static TileGroupShape[] NoConnectionLeft = { TileGroupShape.TriangleRight, TileGroupShape.CornerUpRight, TileGroupShape.CornerDownRight, TileGroupShape.VerticalLine, TileGroupShape.Empty };
+    public static TileGroupShape[] ConnectionWest = { TileGroupShape.Plus, TileGroupShape.TriangleNorth, TileGroupShape.TriangleSouth, TileGroupShape.TriangleWest, TileGroupShape.CornerNorthWest, TileGroupShape.CornerSouthWest, TileGroupShape.HorizontalLine};
+    public static TileGroupShape[] NoConnectionWest = { TileGroupShape.TriangleEast, TileGroupShape.CornerNorthEast, TileGroupShape.CornerSouthEast, TileGroupShape.VerticalLine, TileGroupShape.Empty };
 
-    public static Dictionary<Tuple<TileGroupShape, Direction>, TileGroupShape[]> ShapesToRemove = new Dictionary<Tuple<TileGroupShape, Direction>, TileGroupShape[]>
+    public static Dictionary<Tuple<TileGroupShape, Direction>, TileGroupShape[]> ShapesToRemove = new()
     {
         //Plus
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.Up), NoConnectionDown },
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.Down), NoConnectionUp },
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.North), NoConnectionSouth },
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.South), NoConnectionNorth },
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Plus, Direction.West), NoConnectionEast},
 
         //TriangleUp
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleUp, Direction.Up), NoConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleUp, Direction.Down), ConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleUp, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleUp, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleNorth, Direction.North), NoConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleNorth, Direction.South), ConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleNorth, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleNorth, Direction.West), NoConnectionEast},
 
         //TriangleDown
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleDown, Direction.Up), ConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleDown, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleDown, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleDown, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleSouth, Direction.North), ConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleSouth, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleSouth, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleSouth, Direction.West), NoConnectionEast},
 
         //TriangleRight
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleRight, Direction.Up), NoConnectionDown },
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleRight, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleRight, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleRight, Direction.Left), ConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleEast, Direction.North), NoConnectionSouth },
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleEast, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleEast, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleEast, Direction.West), ConnectionEast},
 
         //TriangleLeft
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleLeft, Direction.Up), NoConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleLeft, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleLeft, Direction.Right), ConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleLeft, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleWest, Direction.North), NoConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleWest, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleWest, Direction.East), ConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.TriangleWest, Direction.West), NoConnectionEast},
 
         //CornerUpRight
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpRight, Direction.Up), NoConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpRight, Direction.Down), ConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpRight, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpRight, Direction.Left), ConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthEast, Direction.North), NoConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthEast, Direction.South), ConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthEast, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthEast, Direction.West), ConnectionEast},
 
         //CornerDownRight
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownRight, Direction.Up), ConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownRight, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownRight, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownRight, Direction.Left), ConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthEast, Direction.North), ConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthEast, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthEast, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthEast, Direction.West), ConnectionEast},
 
         //CornerUpLeft
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpLeft, Direction.Up), NoConnectionDown },
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpLeft, Direction.Down), ConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpLeft, Direction.Right), ConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerUpLeft, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthWest, Direction.North), NoConnectionSouth },
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthWest, Direction.South), ConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthWest, Direction.East), ConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerNorthWest, Direction.West), NoConnectionEast},
 
         //CornerDownLeft
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownLeft, Direction.Up), ConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownLeft, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownLeft, Direction.Right), ConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerDownLeft, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthWest, Direction.North), ConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthWest, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthWest, Direction.East), ConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.CornerSouthWest, Direction.West), NoConnectionEast},
 
         //VerticalLine
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.Up), NoConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.Down), NoConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.Right), ConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.Left), ConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.North), NoConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.South), NoConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.East), ConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.VerticalLine, Direction.West), ConnectionEast},
 
         //HorizontalLine
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.Up), ConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.Down), ConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.Right), NoConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.Left), NoConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.North), ConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.South), ConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.East), NoConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.HorizontalLine, Direction.West), NoConnectionEast},
 
         //Empty
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.Up), ConnectionDown},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.Down), ConnectionUp},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.Right), ConnectionLeft},
-        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.Left), ConnectionRight},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.North), ConnectionSouth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.South), ConnectionNorth},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.East), ConnectionWest},
+        { new Tuple<TileGroupShape, Direction>(TileGroupShape.Empty, Direction.West), ConnectionEast},
     };
 
     public static bool[,] GetShapeDefinition(TileGroupShape shape)
     {
-        bool[,] definitionArray;
-
-        switch (shape)
+        bool[,] definitionArray = shape switch
         {
-            case TileGroupShape.Plus:
-                definitionArray = new bool[3, 3] {
+            TileGroupShape.Plus => new bool[3, 3] {
                     { false, true, false },
                     { true, true, true },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.TriangleUp:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.TriangleNorth => new bool[3, 3] {
                     { false, true, false },
                     { false, true, true },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.TriangleDown:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.TriangleSouth => new bool[3, 3] {
                     { false, true, false },
                     { true, true, false },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.TriangleRight:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.TriangleEast => new bool[3, 3] {
                     { false, false, false },
                     { true, true, true },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.TriangleLeft:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.TriangleWest => new bool[3, 3] {
                     { false, true, false },
                     { true, true, true },
-                    { false, false, false } };
-                break;
-            case TileGroupShape.CornerUpRight:
-                definitionArray = new bool[3, 3] {
+                    { false, false, false } },
+            TileGroupShape.CornerNorthEast => new bool[3, 3] {
                     { false, false, false },
                     { false, true, true },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.CornerDownRight:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.CornerSouthEast => new bool[3, 3] {
                     { false, false, false },
                     { true, true, false },
-                    { false, true, false } };
-                break;
-            case TileGroupShape.CornerUpLeft:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.CornerNorthWest => new bool[3, 3] {
                     { false, true, false },
                     { false, true, true},
-                    { false, false, false } };
-                break;
-            case TileGroupShape.CornerDownLeft:
-                definitionArray = new bool[3, 3] {
+                    { false, false, false } },
+            TileGroupShape.CornerSouthWest => new bool[3, 3] {
                     { false, true, false },
                     { true, true, false},
-                    { false, false, false } };
-                break;
-            case TileGroupShape.VerticalLine:
-                definitionArray = new bool[3, 3] {
+                    { false, false, false } },
+            TileGroupShape.VerticalLine => new bool[3, 3] {
                     { false, false, false },
                     { true, true, true},
-                    { false, false, false } };
-                break;
-            case TileGroupShape.HorizontalLine:
-                definitionArray = new bool[3, 3] {
+                    { false, false, false } },
+            TileGroupShape.HorizontalLine => new bool[3, 3] {
                     { false, true, false },
                     { false, true, false},
-                    { false, true, false } };
-                break;
-            case TileGroupShape.Empty:
-                definitionArray = new bool[3, 3] {
+                    { false, true, false } },
+            TileGroupShape.Empty => new bool[3, 3] {
                     { false, false, false },
                     { false, false, false},
-                    { false, false, false } };
-                break;
-            default:
-                definitionArray = new bool[3, 3] {
+                    { false, false, false } },
+            _ => new bool[3, 3] {
                     { false, false, false },
                     { false, false, false},
-                    { false, false, false } };
-                break;
-        }
-
+                    { false, false, false } },
+        };
         return definitionArray;
     }
 }
