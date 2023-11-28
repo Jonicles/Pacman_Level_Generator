@@ -48,9 +48,29 @@ public struct Coordinate
         return $"({X}, {Y})";
     }
 
+    public static Coordinate GetCoordinateFromDirection(Direction direction)
+    {
+        switch (direction)
+        {
+            case Direction.North:
+                return North;
+            case Direction.South:
+                return South;
+            case Direction.East:
+                return East;
+            case Direction.West:
+                return West;
+            default:
+                return North;
+        }
+    }
+
     public static Coordinate operator +(Coordinate a, Coordinate b) => new(a.X + b.X, a.Y + b.Y);
 
     public static Coordinate operator -(Coordinate a, Coordinate b) => new(a.X - b.X, a.Y - b.Y);
+
+    public static Coordinate operator *(Coordinate a, Coordinate b) => new(a.X * b.X, a.Y * b.Y);
+
 
 
     public static bool operator ==(Coordinate a, Coordinate b)

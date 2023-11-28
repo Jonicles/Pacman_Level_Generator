@@ -33,6 +33,12 @@ public class Tile : MonoBehaviour
         UpdateDisplay(TileSprite.Empty);
     }
 
+    public void GhostTile()
+    {
+        State = TileState.GhostSpace;
+        UpdateDisplay(TileSprite.Empty);
+    }
+
     public void UpdateDisplay(TileSprite tileSprite)
     {
         spriteRenderer.sprite = TileSpriteHolder.Instance.GetSprite(tileSprite);
@@ -43,5 +49,6 @@ public enum TileState
 { 
     Empty, 
     Pellet, 
-    Occupied 
+    Occupied,
+    GhostSpace
 }

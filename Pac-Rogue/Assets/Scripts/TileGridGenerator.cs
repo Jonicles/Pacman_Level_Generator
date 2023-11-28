@@ -11,6 +11,8 @@ public class TileGridGenerator : MonoBehaviour
     const int tileGroupDimension = 3;
     TileGrid currentGrid;
 
+    bool StartInfinity = false;
+
     private void Start()
     {
         //GenerateGrid(5, 8);
@@ -25,7 +27,19 @@ public class TileGridGenerator : MonoBehaviour
                 currentGrid.DestroyGrid();
             }
             currentGrid = GenerateGrid(desiredWidth, desiredHeight);
+        }
 
+        if (Input.GetKeyDown(KeyCode.LeftAlt))
+            StartInfinity = true;
+
+
+        if (StartInfinity)
+        {
+            if (currentGrid != null)
+            {
+                currentGrid.DestroyGrid();
+            }
+            currentGrid = GenerateGrid(desiredWidth, desiredHeight);
         }
     }
     public TileGrid GenerateGrid(int desiredWidth, int desiredHeight)
@@ -46,8 +60,6 @@ public class TileGridGenerator : MonoBehaviour
 
         TransformTileStates(grid, tileGroupMatrix);
 
-        //AddPelletsToWidth(grid, groupWidth);
-
         CopyTilesToRightSide(grid);
 
         CreateGhostBox(grid);
@@ -56,14 +68,23 @@ public class TileGridGenerator : MonoBehaviour
 
         RemoveIncorrectTiles(grid);
 
-        ConnectPaths(grid);
+        bool fullyConnected = CheckForConnectedPath(grid);
 
-        FindDisconnectedPath(grid);
+        while (!fullyConnected)
+        {
+            fullyConnected = CheckForConnectedPath(grid);
+            RemoveIncorrectTiles(grid);
+        }
+
+        RemoveIncorrectTiles(grid);
 
         ChangeOccupiedTileSprites(grid);
 
+        ChangeBorderSprites(grid);
+
         return grid;
     }
+
 
     private TileGroup[,] GenerateTileGroups(int width, int height)
     {
@@ -266,6 +287,7 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
     }
+
     private void CopyTilesToRightSide(TileGrid grid)
     {
         for (int i = 0; i < grid.GetLength(0) * 0.5f; i++)
@@ -304,7 +326,6 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
     }
-
     private Coordinate GetMirroredCoordinate(TileGrid grid, int x, int y)
     {
         return new Coordinate((grid.GetLength(0) - 1) - x, y);
@@ -343,6 +364,9 @@ public class TileGridGenerator : MonoBehaviour
                             break;
                         case TileState.Occupied:
                             currentTile.OccupyTile();
+                            break;
+                        case TileState.GhostSpace:
+                            currentTile.GhostTile();
                             break;
                         default:
                             break;
@@ -670,19 +694,18 @@ public class TileGridGenerator : MonoBehaviour
         }
     }
 
-
-    private void FindDisconnectedPath(TileGrid grid)
+    private bool CheckForConnectedPath(TileGrid grid)
     {
-        HashSet<Coordinate> connectedTiles = new HashSet<Coordinate>();
-        bool disconnected = false;
+        HashSet<Coordinate> connectedCoordinates = new HashSet<Coordinate>();
+        bool connected = false;
 
-        for (int i = 0; i < grid.GetLength(0); i++)
+        for (int i = 1; i < grid.GetLength(1); i++)
         {
-            for (int j = 0; j < grid.GetLength(1); j++)
+            for (int j = 1; j < grid.GetLength(0); j++)
             {
-                Coordinate currentCoordinate = new Coordinate(i, j);
+                Coordinate currentCoordinate = new Coordinate(j, i);
 
-                if (connectedTiles.Contains(currentCoordinate))
+                if (connectedCoordinates.Contains(currentCoordinate))
                     continue;
 
                 if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
@@ -691,79 +714,23 @@ public class TileGridGenerator : MonoBehaviour
                 if (currentTile.State == TileState.Occupied)
                     continue;
 
-                if (!disconnected)
+                if (!connected)
                 {
-                    connectedTiles = FindConnectedTiles(connectedTiles, grid, currentCoordinate);
+                    connectedCoordinates = FindConnectedCoordinates(connectedCoordinates, grid, currentCoordinate);
+                    connected = true;
                 }
                 else
                 {
-                    connectedTiles = FindConnectedTiles(connectedTiles, grid, currentCoordinate);
-                    TestMethod(connectedTiles, grid);
+                    HashSet<Coordinate> disconnectedCoordinates = new HashSet<Coordinate>();
+                    disconnectedCoordinates = FindConnectedCoordinates(disconnectedCoordinates, grid, currentCoordinate);
+                    PlacePelletsForDisconnectedPath(disconnectedCoordinates, connectedCoordinates, grid);
+                    return false;
                 }
             }
         }
+        return true;
     }
-
-    private void TestMethod(HashSet<Coordinate> connectedTiles, TileGrid grid)
-    {
-        List<Coordinate> connectableCoordinates = new();
-
-        foreach (var coordinate in connectedTiles)
-        {
-            if (coordinate.X < grid.GetLength(0) * 0.5f && coordinate.X % tileGroupDimension == 1 && coordinate.Y % tileGroupDimension == 3)
-                connectableCoordinates.Add(coordinate);
-        }
-
-        foreach (var coordinate in connectableCoordinates)
-        {
-            FindClosestPossibleConnection(grid, coordinate);
-        }
-    }
-
-    private void FindClosestPossibleConnection(TileGrid grid, Coordinate coordinate)
-    {
-        bool northConnection = FindValidConnectionAndLength(grid, coordinate, Direction.North, out int length);
-    }
-
-    private bool FindValidConnectionAndLength(TileGrid grid, Coordinate coordinate, Direction currentDirection, out int length)
-    {
-        Coordinate coordinateDirection = new();
-
-        switch (currentDirection)
-        {
-            case Direction.North:
-                coordinateDirection = Coordinate.North;
-                break;
-            case Direction.South:
-                coordinateDirection = Coordinate.South;
-                break;
-            case Direction.East:
-                coordinateDirection = Coordinate.East;
-                break;
-            case Direction.West:
-                coordinateDirection = Coordinate.West;
-                break;
-            default:
-                break;
-        }
-
-        length = 0;
-        Coordinate nextCoordinate = coordinate + coordinateDirection;
-
-        while (grid.TryGetTile(nextCoordinate, out Tile nextTile))
-        {
-            if (nextTile.State == TileState.Occupied)
-                length++;
-            else
-                return true;
-
-            nextCoordinate += coordinateDirection;
-        }
-
-        return false;
-    }
-
-    private HashSet<Coordinate> FindConnectedTiles(HashSet<Coordinate> connectedCoordinates, TileGrid grid, Coordinate startCoordinate)
+    private HashSet<Coordinate> FindConnectedCoordinates(HashSet<Coordinate> connectedCoordinates, TileGrid grid, Coordinate startCoordinate)
     {
         connectedCoordinates.Add(startCoordinate);
 
@@ -776,125 +743,122 @@ public class TileGridGenerator : MonoBehaviour
         if (grid.TryGetTile(northCoordinate, out Tile northTile))
         {
             if (northTile.State != TileState.Occupied && !connectedCoordinates.Contains(northCoordinate))
-                FindConnectedTiles(connectedCoordinates, grid, northCoordinate);
+                FindConnectedCoordinates(connectedCoordinates, grid, northCoordinate);
         }
         if (grid.TryGetTile(southCoordinate, out Tile southTile))
         {
             if (southTile.State != TileState.Occupied && !connectedCoordinates.Contains(southCoordinate))
-                FindConnectedTiles(connectedCoordinates, grid, southCoordinate);
+                FindConnectedCoordinates(connectedCoordinates, grid, southCoordinate);
         }
         if (grid.TryGetTile(westCoordinate, out Tile westTile))
         {
             if (westTile.State != TileState.Occupied && !connectedCoordinates.Contains(westCoordinate))
-                FindConnectedTiles(connectedCoordinates, grid, westCoordinate);
+                FindConnectedCoordinates(connectedCoordinates, grid, westCoordinate);
         }
         if (grid.TryGetTile(eastCoordinate, out Tile eastTile))
         {
             if (eastTile.State != TileState.Occupied && !connectedCoordinates.Contains(eastCoordinate))
-                FindConnectedTiles(connectedCoordinates, grid, eastCoordinate);
+                FindConnectedCoordinates(connectedCoordinates, grid, eastCoordinate);
         }
 
         return connectedCoordinates;
     }
-
-    private void ConnectPaths(TileGrid grid)
+    private void PlacePelletsForDisconnectedPath(HashSet<Coordinate> disconnectedCoordinates, HashSet<Coordinate> connectedCoordinates, TileGrid grid)
     {
-        // .......
-        // ->.....
-        bool disconnected;
+        List<Coordinate> elegibleCoordinates = new();
 
-        for (int i = 0; i < grid.GetLength(1); i++)
+        foreach (var coordinate in connectedCoordinates)
         {
-            disconnected = true;
+            bool halfGrid = coordinate.X < grid.GetLength(0) * 0.5f - 1;
+            bool centerPellet = coordinate.X % tileGroupDimension == 1 && coordinate.Y % tileGroupDimension == 1;
+            bool westEdge = grid.TryGetTile(coordinate + Coordinate.West, out Tile westTile) && westTile.State == TileState.Occupied;
+            bool southEdge = grid.TryGetTile(coordinate + Coordinate.South, out Tile southTile) && southTile.State == TileState.Occupied;
+            bool eastEdge = grid.TryGetTile(coordinate + Coordinate.East, out Tile eastTile) && eastTile.State == TileState.Occupied;
+            bool northEdge = grid.TryGetTile(coordinate + Coordinate.North, out Tile northTile) && northTile.State == TileState.Occupied;
 
-            for (int j = 0; j < grid.GetLength(0); j++)
+
+            if (halfGrid && centerPellet && (westEdge || southEdge || eastEdge || northEdge))
             {
-                Coordinate currentCoordinate = new(j, i);
+                elegibleCoordinates.Add(coordinate);
+            }
+        }
 
-                if (grid.TryGetTile(currentCoordinate + Coordinate.North, out Tile northTile))
+        foreach (var currentCoordinate in elegibleCoordinates)
+        {
+            if (FindClosestPossibleConnection(grid, currentCoordinate, disconnectedCoordinates, out Direction direction, out int length))
+            {
+                for (int i = 1; i <= length; i++)
                 {
-                    if (northTile.State != TileState.Occupied)
+                    Coordinate coordinateDirection = Coordinate.GetCoordinateFromDirection(direction);
+                    Coordinate nextCoordinate = currentCoordinate + new Coordinate(coordinateDirection.X * i, coordinateDirection.Y * i);
+
+                    if (grid.TryGetTile(nextCoordinate, out Tile tile))
                     {
-                        disconnected = false;
+                        tile.PlacePellet();
+                        Coordinate mirroredCoordinate = GetMirroredCoordinate(grid, nextCoordinate.X, nextCoordinate.Y);
+
+                        if (grid.TryGetTile(mirroredCoordinate, out Tile mirroredTile))
+                            mirroredTile.PlacePellet();
+
                     }
                 }
             }
-
-            if (disconnected)
-            {
-                ConnectVertically(grid, i);
-            }
         }
     }
-    private void ConnectVertically(TileGrid grid, int row)
+    private bool FindClosestPossibleConnection(TileGrid grid, Coordinate coordinate, HashSet<Coordinate> disconnectedCoordinates, out Direction direction, out int length)
     {
-        print($"Want to connect row: {row}");
-        List<Coordinate> allowedCoordinateConnection = new();
+        bool northConnection = ValidateDirection(grid, coordinate, Direction.North, out int northLength, out Coordinate northConnectionCoordinate);
+        bool southConnection = ValidateDirection(grid, coordinate, Direction.South, out int southLength, out Coordinate southConnectionCoordinate);
+        bool eastConnection = ValidateDirection(grid, coordinate, Direction.East, out int eastLength, out Coordinate eastConnectionCoordinate);
+        bool westConnection = ValidateDirection(grid, coordinate, Direction.West, out int westLength, out Coordinate westConnectionCoordinate);
 
-        for (int i = 0; i < grid.GetLength(0); i++)
+        Dictionary<Direction, int> directionLengths = new Dictionary<Direction, int>();
+
+        if (northConnection && northLength > 0 && disconnectedCoordinates.Contains(northConnectionCoordinate))
+            directionLengths.Add(Direction.North, northLength);
+        if (southConnection && southLength > 0 && disconnectedCoordinates.Contains(southConnectionCoordinate))
+            directionLengths.Add(Direction.South, southLength);
+        if (eastConnection && eastLength > 0 && disconnectedCoordinates.Contains(eastConnectionCoordinate))
+            directionLengths.Add(Direction.East, eastLength);
+        if (westConnection && westLength > 0 && disconnectedCoordinates.Contains(westConnectionCoordinate))
+            directionLengths.Add(Direction.West, westLength);
+
+        direction = Direction.North;
+        length = Int32.MaxValue;
+
+        foreach (KeyValuePair<Direction, int> directionLength in directionLengths)
         {
-            Coordinate currentCoordinate = new(i, row);
-
-            if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
-                continue;
-
-            if (currentTile.State != TileState.Occupied)
+            if (directionLength.Value < length)
             {
-                bool eligibleForConnection = i % tileGroupDimension == 1;
-
-                if (eligibleForConnection)
-                    allowedCoordinateConnection.Add(currentCoordinate);
+                direction = directionLength.Key;
+                length = directionLength.Value;
             }
         }
 
-        float shortestPathLength = Mathf.Infinity;
-        Coordinate coordToUse = new();
-
-        foreach (var coordinate in allowedCoordinateConnection)
-        {
-            float tempLenght = CheckLengthToNearestPellet(grid, coordinate);
-
-            if (tempLenght < shortestPathLength)
-            {
-                coordToUse = coordinate;
-                shortestPathLength = tempLenght;
-            }
-        }
-
-        if (shortestPathLength == Mathf.Infinity)
-            return;
-
-        print($"Placing pellets for coordinate: {coordToUse}");
-        for (int i = 1; i <= shortestPathLength; i++)
-        {
-            Coordinate coordToPlacePelletOn = new Coordinate(coordToUse.X, coordToUse.Y + i);
-            if (grid.TryGetTile(coordToPlacePelletOn, out Tile tile))
-            {
-                print($"placing on coordinate: ({coordToPlacePelletOn.X}, {coordToPlacePelletOn.Y})");
-                tile.PlacePellet();
-
-                if (grid.TryGetTile(GetMirroredCoordinate(grid, coordToPlacePelletOn.X, coordToPlacePelletOn.Y), out Tile mirroredTile))
-                    mirroredTile.PlacePellet();
-
-            }
-        }
+        if (length == Int32.MaxValue)
+            return false;
+        else
+            return true;
     }
-    private float CheckLengthToNearestPellet(TileGrid grid, Coordinate coordinate)
+    private bool ValidateDirection(TileGrid grid, Coordinate startCoordinate, Direction currentDirection, out int length, out Coordinate connectionCoordinate)
     {
-        int length = 0;
-        Coordinate nextCoordinate = coordinate + Coordinate.North;
+        length = 0;
+        connectionCoordinate = new();
+        Coordinate nextCoordinate = startCoordinate + Coordinate.GetCoordinateFromDirection(currentDirection);
 
         while (grid.TryGetTile(nextCoordinate, out Tile nextTile))
         {
             if (nextTile.State == TileState.Occupied)
                 length++;
             else
-                return length;
+            {
+                connectionCoordinate = nextCoordinate;
+                return true;
+            }
 
-            nextCoordinate += Coordinate.North;
+            nextCoordinate += Coordinate.GetCoordinateFromDirection(currentDirection);
         }
-
-        return Mathf.Infinity;
+        return false;
     }
 
     private void ChangeOccupiedTileSprites(TileGrid grid)
@@ -919,6 +883,173 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
     }
+
+
+    private void ChangeBorderSprites(TileGrid grid)
+    {
+        HashSet<Coordinate> borderCoordinates = new HashSet<Coordinate>();
+
+        for (int i = 0; i < grid.GetLength(0); i++)
+        {
+            for (int j = 0; j < grid.GetLength(1); j++)
+            {
+                Coordinate startCoordinate = new Coordinate(i, j);
+
+                if (j == 0)
+                {
+                    if (FindBorder(grid, startCoordinate, Direction.North, out Coordinate borderCoordinate))
+                    {
+                        if (!borderCoordinates.Contains(borderCoordinate))
+                            borderCoordinates.Add(borderCoordinate);
+                    }
+                }
+
+                if (j == grid.GetLength(1) - 1)
+                {
+                    if (FindBorder(grid, startCoordinate, Direction.South, out Coordinate borderCoordinate))
+                    {
+                        if (!borderCoordinates.Contains(borderCoordinate))
+                            borderCoordinates.Add(borderCoordinate);
+                    }
+
+                }
+
+                if (i == 0)
+                {
+                    if (FindBorder(grid, startCoordinate, Direction.East, out Coordinate borderCoordinate))
+                    {
+                        if (!borderCoordinates.Contains(borderCoordinate))
+                            borderCoordinates.Add(borderCoordinate);
+                    }
+                }
+
+                if (i == grid.GetLength(0) - 1)
+                {
+                    if (FindBorder(grid, startCoordinate, Direction.West, out Coordinate borderCoordinate))
+                    {
+                        if (!borderCoordinates.Contains(borderCoordinate))
+                            borderCoordinates.Add(borderCoordinate);
+                    }
+                }
+            }
+        }
+
+        string code = "";
+        foreach (var coordinate in borderCoordinates)
+        {
+            code = DetermineTileCode(grid, coordinate);
+
+            if (!TryGetBorderSprite(code, out TileSprite sprite))
+                continue;
+
+            if (!grid.TryGetTile(coordinate, out Tile tile))
+                continue;
+
+            tile.UpdateDisplay(sprite);
+        }
+    }
+
+    private bool TryGetBorderSprite(string code, out TileSprite sprite)
+    {
+        sprite = TileSprite.Occupied;
+
+        switch (code)
+        {
+            case "111111000":
+                sprite = TileSprite.BorderEdgeNorth;
+                break;
+            case "111111001":
+                sprite = TileSprite.BorderEdgeNorth;
+                break;
+            case "111111100":
+                sprite = TileSprite.BorderEdgeNorth;
+                break;
+            case "100011111":
+                sprite = TileSprite.BorderEdgeSouth;
+                break;
+            case "110011111":
+                sprite = TileSprite.BorderEdgeSouth;
+                break;
+            case "100111111":
+                sprite = TileSprite.BorderEdgeSouth;
+                break;
+            case "111010110":
+                sprite = TileSprite.BorderEdgeWest;
+                break;
+            case "111110110":
+                sprite = TileSprite.BorderEdgeWest;
+                break;
+            case "111010111":
+                sprite = TileSprite.BorderEdgeWest;
+                break;
+
+                //NOT IMPLEMENTED
+            case "111010110":
+                sprite = TileSprite.BorderEdgeEast;
+                break;
+            case "111110110":
+                sprite = TileSprite.BorderEdgeEast;
+                break;
+            case "111010111":
+                sprite = TileSprite.BorderEdgeEast;
+                break;
+            case "101111111":
+                sprite = TileSprite.BorderCornerSouthEast;
+                break;
+            case "111111110":
+                sprite = TileSprite.BorderCornerNorthWest;
+                break;
+            case "111011111":
+                sprite = TileSprite.BorderCornerSouthWest;
+                break;
+            case "111111011":
+                sprite = TileSprite.BorderCornerNorthEast;
+                break;
+            //case "111010111":
+            //    sprite = TileSprite.BorderEdgeEast;
+            //    break;
+            //case "101101011":
+            //    sprite = TileSprite.BorderEdgeWest;
+            //    break;
+            //case "101101111":
+            //    sprite = TileSprite.BorderEdgeWest;
+            //    break;
+            //case "111101011":
+            //    sprite = TileSprite.BorderEdgeWest;
+            //    break;
+
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool FindBorder(TileGrid grid, Coordinate startCoordinate, Direction direction, out Coordinate borderCoordinate)
+    {
+        bool reachedOtherSide = false;
+        Coordinate coordinateToCheck = startCoordinate;
+        
+        do
+        {
+            string code = DetermineTileCode(grid, coordinateToCheck);
+            if (code != "111111111")
+            {
+                borderCoordinate = coordinateToCheck;
+                return true;
+            }
+
+            coordinateToCheck += Coordinate.GetCoordinateFromDirection(direction);
+
+            if (!grid.TryGetTile(coordinateToCheck, out Tile temp))
+                reachedOtherSide = true;
+
+        } while (!reachedOtherSide);
+
+        borderCoordinate = new();
+        return false;
+    }
+
     private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
     {
         Coordinate northWestCoordinate = currentCoordinate + Coordinate.NorthWest;
@@ -972,132 +1103,89 @@ public class TileGridGenerator : MonoBehaviour
                 tileSprite = TileSprite.Occupied;
                 break;
             case "111010110":
-                tileSprite = TileSprite.EdgeRight;
+                tileSprite = TileSprite.EdgeEast;
                 break;
             case "111010111":
-                tileSprite = TileSprite.EdgeRight;
+                tileSprite = TileSprite.EdgeEast;
                 break;
             case "111110110":
-                tileSprite = TileSprite.EdgeRight;
+                tileSprite = TileSprite.EdgeEast;
                 break;
             case "101101011":
-                tileSprite = TileSprite.EdgeLeft;
+                tileSprite = TileSprite.EdgeWest;
                 break;
             case "101101111":
-                tileSprite = TileSprite.EdgeLeft;
+                tileSprite = TileSprite.EdgeWest;
                 break;
             case "111101011":
-                tileSprite = TileSprite.EdgeLeft;
+                tileSprite = TileSprite.EdgeWest;
                 break;
             case "100011111":
-                tileSprite = TileSprite.EdgeUp;
+                tileSprite = TileSprite.EdgeNorth;
                 break;
             case "100111111":
-                tileSprite = TileSprite.EdgeUp;
+                tileSprite = TileSprite.EdgeNorth;
                 break;
             case "110011111":
-                tileSprite = TileSprite.EdgeUp;
+                tileSprite = TileSprite.EdgeNorth;
                 break;
             case "111111000":
-                tileSprite = TileSprite.EdgeDown;
+                tileSprite = TileSprite.EdgeSouth;
                 break;
             case "111111001":
-                tileSprite = TileSprite.EdgeDown;
+                tileSprite = TileSprite.EdgeSouth;
                 break;
             case "111111100":
-                tileSprite = TileSprite.EdgeDown;
+                tileSprite = TileSprite.EdgeSouth;
                 break;
             case "101101000":
-                tileSprite = TileSprite.CornerDownLeft;
+                tileSprite = TileSprite.CornerSouthWest;
                 break;
             case "111101000":
-                tileSprite = TileSprite.CornerDownLeft;
+                tileSprite = TileSprite.CornerSouthWest;
                 break;
             case "101101001":
-                tileSprite = TileSprite.CornerDownLeft;
+                tileSprite = TileSprite.CornerSouthWest;
                 break;
             case "111010000":
-                tileSprite = TileSprite.CornerDownRight;
+                tileSprite = TileSprite.CornerSouthEast;
                 break;
             case "111110000":
-                tileSprite = TileSprite.CornerDownRight;
+                tileSprite = TileSprite.CornerSouthEast;
                 break;
             case "111010100":
-                tileSprite = TileSprite.CornerDownRight;
+                tileSprite = TileSprite.CornerSouthEast;
                 break;
             case "100001011":
-                tileSprite = TileSprite.CornerUpLeft;
+                tileSprite = TileSprite.CornerNorthWest;
                 break;
             case "100001111":
-                tileSprite = TileSprite.CornerUpLeft;
+                tileSprite = TileSprite.CornerNorthWest;
                 break;
             case "100101011":
-                tileSprite = TileSprite.CornerUpLeft;
+                tileSprite = TileSprite.CornerNorthWest;
                 break;
             case "100010110":
-                tileSprite = TileSprite.CornerUpRight;
+                tileSprite = TileSprite.CornerNorthEast;
                 break;
             case "100010111":
-                tileSprite = TileSprite.CornerUpRight;
+                tileSprite = TileSprite.CornerNorthEast;
                 break;
             case "110010110":
-                tileSprite = TileSprite.CornerUpRight;
+                tileSprite = TileSprite.CornerNorthEast;
                 break;
             case "101111111":
-                tileSprite = TileSprite.InverseCornerUpLeft;
+                tileSprite = TileSprite.InverseCornerNorthWest;
                 break;
             case "111011111":
-                tileSprite = TileSprite.InverseCornerUpRight;
+                tileSprite = TileSprite.InverseCornerNorthEast;
                 break;
             case "111111011":
-                tileSprite = TileSprite.InverseCornerDownLeft;
+                tileSprite = TileSprite.InverseCornerSouthWest;
                 break;
             case "111111110":
-                tileSprite = TileSprite.InverseCornerDownRight;
+                tileSprite = TileSprite.InverseCornerSouthEast;
                 break;
-
-            ////Unorthodox cases
-            //case "111101101":
-            //    reUpdateRequired = true;
-            //    currentTile.PlacePellet();
-            //    break;
-            //case "111110101":
-            //    reUpdateRequired = true;
-            //    currentTile.PlacePellet();
-            //    break;
-            //case "100011101":
-            //    reUpdateRequired = true;
-            //    currentTile.PlacePellet();
-            //    print("New case!");
-            //    break;
-            //case "111110111":
-            //    reUpdateRequired = true;
-            //    currentTile.PlacePellet();
-            //    grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile upperTileRightSide);
-            //    upperTileRightSide.PlacePellet();
-            //    print("Placing pellets left side");
-            //    break;
-            //case "111101111":
-            //    reUpdateRequired = true;
-            //    currentTile.PlacePellet();
-            //    grid.TryGetTile(currentCoordinate + Coordinate.north, out Tile upperTileLeftSide);
-            //    upperTileLeftSide.PlacePellet();
-            //    print("Placing pellets right side");
-            //    break;
-            //case "101101110":
-            //    tileSprite = TileSprite.FunnelDownLeft;
-            //    grid.TryGetTile(currentCoordinate + Coordinate.southWest, out Tile soutWestTile);
-            //    grid.TryGetTile(currentCoordinate + Coordinate.south, out Tile southTile);
-            //    southTile.UpdateDisplay(TileSprite.EdgeRight);
-            //    soutWestTile.UpdateDisplay(TileSprite.SoftCornerDownRight);
-            //    print("YUP");
-            //    break;
-            //case "111011011":
-            //    tileSprite = TileSprite.DoubleInverseForward;
-            //    break;
-            //case "101111110":
-            //    tileSprite = TileSprite.DoubleInverseBackward;
-            //    break;
             default:
                 return false;
         }

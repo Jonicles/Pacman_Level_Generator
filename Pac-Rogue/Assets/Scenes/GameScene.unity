@@ -176,7 +176,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 16
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -200,7 +200,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 302370211}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 14, y: 14.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -263,28 +263,24 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: FunnelDownLeftSprite
+      propertyPath: occupiedSprite
       value: 
-      objectReference: {fileID: 21300000, guid: b161b3ee28c149440894394a45534367, type: 3}
+      objectReference: {fileID: 21300000, guid: d35b1d33209a3f84eaf8c5f4eea192d0, type: 3}
     - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: FunnerlDownRightSprite
+      propertyPath: borderCornerNorthEastSprite
       value: 
-      objectReference: {fileID: 21300000, guid: 8c188d8a1af9117458c6150cdb88ceb9, type: 3}
+      objectReference: {fileID: 21300000, guid: 1edb07d4033da974e920d0182e6c0a8f, type: 3}
     - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: SoftCornerDownLeftSprite
+      propertyPath: borderCornerNorthWestSprite
       value: 
-      objectReference: {fileID: 21300000, guid: 8a252aa9d3e13914799787fb782ac4a7, type: 3}
+      objectReference: {fileID: 21300000, guid: 13f255e17103f984281ccb50391d8589, type: 3}
     - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: SoftCornerDownRightSprite
+      propertyPath: borderCornerSouthEastSprite
       value: 
-      objectReference: {fileID: 21300000, guid: f26610131d3a28a47a37a3530f492379, type: 3}
+      objectReference: {fileID: 21300000, guid: 2840d759fe550a54d93cebc4434b17ac, type: 3}
     - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: doubleInverseForwardSprite
+      propertyPath: borderCornerSouthWestSprite
       value: 
-      objectReference: {fileID: 21300000, guid: e49f98bb8791d4f4dbbf15e2303f825f, type: 3}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: doubleInverseBackwardSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 207bbed8f104c41439ba5d2939933e45, type: 3}
+      objectReference: {fileID: 21300000, guid: 2309189d45b19b24ca1b9d42d26c0f7e, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
