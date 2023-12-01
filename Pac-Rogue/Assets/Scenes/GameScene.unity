@@ -262,25 +262,5 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: occupiedSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: d35b1d33209a3f84eaf8c5f4eea192d0, type: 3}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: borderCornerNorthEastSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 1edb07d4033da974e920d0182e6c0a8f, type: 3}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: borderCornerNorthWestSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 13f255e17103f984281ccb50391d8589, type: 3}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: borderCornerSouthEastSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 2840d759fe550a54d93cebc4434b17ac, type: 3}
-    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
-      propertyPath: borderCornerSouthWestSprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 2309189d45b19b24ca1b9d42d26c0f7e, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}

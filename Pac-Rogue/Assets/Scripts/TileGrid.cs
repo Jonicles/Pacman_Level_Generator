@@ -39,6 +39,17 @@ public class TileGrid
         return true;
     }
 
+    public bool TryGetTile(Coordinate coordinate)
+    {
+        bool outOfBounds = coordinate.X < 0 || coordinate.X > grid.GetLength(0) - 1 || coordinate.Y < 0 || coordinate.Y > grid.GetLength(1) - 1;
+        if (outOfBounds)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public int GetLength(int dimension)
     {
         int length = 0;
