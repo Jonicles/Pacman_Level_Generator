@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class GhostBox
 {
-    public const int width = 14;
-    public const int height = 11;
+    public readonly int width = 14;
+    public readonly int height = 11;
     public readonly Dictionary<Coordinate, Tuple<TileState, TileSprite>> dict = new()
     {   //Column 1
         { new Coordinate(0,0), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.Occupied) },

@@ -12,32 +12,86 @@ public class TileGridGenerator : MonoBehaviour
     TileGrid currentGrid;
 
     bool StartInfinity = false;
-    int iteration = 0;
-    const string OCCUPIED = "";
-    const string EDGE_NORTH = "";
-    const string EDGE_SOUTH = "";
-    const string EDGE_WEST = "";
-    const string EDGE_EAST = "";
-    const string CORNER_NORTHEAST = "";
-    const string CORNER_NORTHWEST = "";
-    const string CORNER_SOUTHEAST = "";
-    const string CORNER_SOUTHWEST = "";
-    const string INVERSE_CORNER_NORTHEAST = "";
-    const string INVERSE_CORNER_NORTHWEST = "";
-    const string INVERSE_CORNER_SOUTHEAST = "";
-    const string INVERSE_CORNER_SOUTHWEST = "";
 
+    //Indexes for tile code, a 1 represent an occupied tile and a 0 an empty or pellet tile
 
-    const string BORDER_EDGE_NORTH = "";
-    const string BORDER_EDGE_SOUTH = "";
-    const string BORDER_EDGE_WEST = "";
-    const string BORDER_EDGE_EAST = "";
-    const string BORDER_CORNER_NORTHEAST = "";
-    const string BORDER_CORNER_NORTHWEST = "";
-    const string BORDER_CORNER_SOUTHEAST = "";
-    const string BORDER_CORNER_SOUTHWEST = "";
+    //[1] [2] [3]
+    //[4] [0] [5]
+    //[6] [7] [8]
+    const string OCCUPIED_SURROUND = "111111111";
 
+    const string EDGE_NORTH_1 = "100011111";
+    const string EDGE_NORTH_2 = "100111111";
+    const string EDGE_NORTH_3 = "110011111";
 
+    const string EDGE_SOUTH_1 = "111111000";
+    const string EDGE_SOUTH_2 = "111111001";
+    const string EDGE_SOUTH_3 = "111111100";
+
+    const string EDGE_WEST_1 = "101101011";
+    const string EDGE_WEST_2 = "101101111";
+    const string EDGE_WEST_3 = "111101011";
+
+    const string EDGE_EAST_1 = "111010110";
+    const string EDGE_EAST_2 = "111010111";
+    const string EDGE_EAST_3 = "111110110";
+
+    const string CORNER_NORTHEAST_1 = "100010110";
+    const string CORNER_NORTHEAST_2 = "100010111";
+    const string CORNER_NORTHEAST_3 = "110010110";
+
+    const string CORNER_NORTHWEST_1 = "100001011";
+    const string CORNER_NORTHWEST_2 = "100001111";
+    const string CORNER_NORTHWEST_3 = "100101011";
+
+    const string CORNER_SOUTHEAST_1 = "111010000";
+    const string CORNER_SOUTHEAST_2 = "111110000";
+    const string CORNER_SOUTHEAST_3 = "111010100";
+
+    const string CORNER_SOUTHWEST_1 = "101101000";
+    const string CORNER_SOUTHWEST_2 = "111101000";
+    const string CORNER_SOUTHWEST_3 = "101101001";
+
+    const string INVERSE_CORNER_NORTHEAST = "111011111";
+    const string INVERSE_CORNER_NORTHWEST = "101111111";
+    const string INVERSE_CORNER_SOUTHEAST = "111111110";
+    const string INVERSE_CORNER_SOUTHWEST = "111111011";
+
+    const string INCORRECT_BIG_C = "111110111";
+    const string INCORRECT_SMALL_C = "101100011";
+    const string INCORRECT_TL = "111100011";
+    const string INCORRECT_CRANE = "101100111";
+
+    const string INCORRECT_BIG_C_REVERSE = "111101111";
+    const string INCORRECT_SMALL_C_REVERSE = "111000110";
+    const string INCORRECT_TL_REVERSE = "111100110";
+    const string INCORRECT_CRANE_REVERSE = "111000111";
+
+    const string INCORRECT_U = "110111111";
+    const string INCORRECT_U_UPSIDEDOWN = "111111101";
+
+    const string INCORRECT_OCCUPIED = "101000010";
+
+    const string BORDER_EDGE_NORTH_1 = "111111000";
+    const string BORDER_EDGE_NORTH_2 = "111111100";
+    const string BORDER_EDGE_NORTH_3 = "111111001";
+
+    const string BORDER_EDGE_SOUTH_1 = "100011111";
+    const string BORDER_EDGE_SOUTH_2 = "110011111";
+    const string BORDER_EDGE_SOUTH_3 = "100111111";
+
+    const string BORDER_EDGE_WEST_1 = "111010110";
+    const string BORDER_EDGE_WEST_2 = "111110110";
+    const string BORDER_EDGE_WEST_3 = "111010111";
+
+    const string BORDER_EDGE_EAST_1 = "101101011";
+    const string BORDER_EDGE_EAST_2 = "111101011";
+    const string BORDER_EDGE_EAST_3 = "101101111";
+
+    const string BORDER_CORNER_NORTHEAST = "111111011";
+    const string BORDER_CORNER_NORTHWEST = "111111110";
+    const string BORDER_CORNER_SOUTHEAST = "101111111";
+    const string BORDER_CORNER_SOUTHWEST = "111011111";
 
 
     private void Start()
@@ -75,7 +129,8 @@ public class TileGridGenerator : MonoBehaviour
         if (desiredWidth % 2 != 0)
             desiredWidth--;
         //Height always has to be odd for ghost box
-        //IMPLEMENTATION
+        if (desiredHeight % 2 == 0)
+            desiredHeight--;
 
         //When we divide with two integers it is automatically "floored", fractions are thrown away.
         int groupWidth = (int)MathF.Floor(desiredWidth / tileGroupDimension * 0.5f);
@@ -111,7 +166,6 @@ public class TileGridGenerator : MonoBehaviour
 
         return grid;
     }
-
 
     private TileGroup[,] GenerateTileGroups(int width, int height)
     {
@@ -362,12 +416,13 @@ public class TileGridGenerator : MonoBehaviour
     {
         GhostBox box = new();
 
-        int halfHeight = /*(int)(0.5f * (grid.GetLength(1) - 1))*/15;
-        int halfWidth = /*(int)(0.5f * grid.GetLength(0))*/14;
-        int ghostBoxHeight = 11;
-        int ghostBoxWidth = 14;
-        int ghostBoxHalfHeight = 5;
-        int ghostBoxHalfWidth = 7;
+        int halfHeight = (grid.GetLength(1) - 1) / 2;
+        int halfWidth = grid.GetLength(0) / 2;
+
+        int ghostBoxHeight = box.height;
+        int ghostBoxWidth = box.width;
+        int ghostBoxHalfHeight = (ghostBoxHeight - 1) / 2 ;
+        int ghostBoxHalfWidth = ghostBoxWidth / 2;
 
         Coordinate startCoordinate = new(halfWidth - ghostBoxHalfWidth, halfHeight - ghostBoxHalfHeight + 1);
 
@@ -530,34 +585,34 @@ public class TileGridGenerator : MonoBehaviour
                             switch (code)
                             {
                                 //Left
-                                case "111110111":
+                                case INCORRECT_BIG_C:
                                     currentTile.PlacePellet();
                                     if (grid.TryGetTile(currentCoordinate + Coordinate.West, out Tile westTile))
                                         westTile.PlacePellet();
                                     reUpdate = true;
                                     break;
-                                case "101100011":
+                                case INCORRECT_SMALL_C:
                                     currentTile.PlacePellet();
                                     break;
-                                case "111100011":
+                                case INCORRECT_TL:
                                     currentTile.PlacePellet();
                                     break;
-                                case "101100111":
+                                case INCORRECT_CRANE:
                                     currentTile.PlacePellet();
                                     break;
                                 //Right
-                                case "111101111":
+                                case INCORRECT_BIG_C_REVERSE:
                                     currentTile.PlacePellet();
                                     if (grid.TryGetTile(currentCoordinate + Coordinate.East, out Tile eastTile))
                                         eastTile.PlacePellet();
                                     break;
-                                case "111000110":
+                                case INCORRECT_SMALL_C_REVERSE:
                                     currentTile.PlacePellet();
                                     break;
-                                case "111100110":
+                                case INCORRECT_TL_REVERSE:
                                     currentTile.PlacePellet();
                                     break;
-                                case "111000111":
+                                case INCORRECT_CRANE_REVERSE:
                                     currentTile.PlacePellet();
                                     break;
                                 default:
@@ -589,7 +644,7 @@ public class TileGridGenerator : MonoBehaviour
 
                             switch (code)
                             {
-                                case "110111111":
+                                case INCORRECT_U:
                                     currentTile.PlacePellet();
 
                                     bool shouldPlacePelletsDown = true;
@@ -621,7 +676,7 @@ public class TileGridGenerator : MonoBehaviour
                                     }
                                     reUpdate = true;
                                     break;
-                                case "111111101":
+                                case INCORRECT_U_UPSIDEDOWN:
                                     currentTile.PlacePellet();
 
                                     bool shouldPlacePelletsUp = true;
@@ -662,6 +717,49 @@ public class TileGridGenerator : MonoBehaviour
             }
         } while (reUpdate);
     }
+    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
+    {
+        Coordinate northWestCoordinate = currentCoordinate + Coordinate.NorthWest;
+        Coordinate northCoordinate = currentCoordinate + Coordinate.North;
+        Coordinate northEastCoordinate = currentCoordinate + Coordinate.NorthEast;
+        Coordinate eastCoordinate = currentCoordinate + Coordinate.East;
+        Coordinate southEastCoordinate = currentCoordinate + Coordinate.SouthEast;
+        Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+        Coordinate southWestCoordinate = currentCoordinate + Coordinate.SouthWest;
+        Coordinate westCoordinate = currentCoordinate + Coordinate.West;
+
+        List<Coordinate> coordinates = new()
+        {
+            currentCoordinate,
+            northWestCoordinate,
+            northCoordinate,
+            northEastCoordinate,
+            westCoordinate,
+            eastCoordinate,
+            southWestCoordinate,
+            southCoordinate,
+            southEastCoordinate,
+        };
+
+        //1 will equal occupied tile, 0 will equal unocccupied
+        string code = "";
+
+        for (int i = 0; i < coordinates.Count; i++)
+        {
+            if (grid.TryGetTile(coordinates[i], out Tile tile))
+            {
+                if (tile.State == TileState.Occupied)
+                    code += 1;
+                else
+                    code += 0;
+            }
+            else
+                //If tile is outside grid
+                code += 1;
+        }
+
+        return code;
+    }
 
     private void RemoveIncorrectTiles(TileGrid grid)
     {
@@ -678,29 +776,25 @@ public class TileGridGenerator : MonoBehaviour
                     {
                         string code = DetermineTileCode(grid, currentCoordinate);
 
-                        switch (code)
+                        if (code != INCORRECT_OCCUPIED)
+                            continue;
+
+                        Coordinate northCoordinate = currentCoordinate + Coordinate.North;
+                        Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+
+                        if (!tilesToEmpty.ContainsKey(currentCoordinate))
+                            tilesToEmpty.Add(currentCoordinate, currentTile);
+
+                        if (!tilesToEmpty.ContainsKey(northCoordinate))
                         {
-                            case "101000010":
-                                Coordinate northCoordinate = currentCoordinate + Coordinate.North;
-                                Coordinate southCoordinate = currentCoordinate + Coordinate.South;
+                            grid.TryGetTile(northCoordinate, out Tile northTile);
+                            tilesToEmpty.Add(northCoordinate, northTile);
+                        }
 
-                                if (!tilesToEmpty.ContainsKey(currentCoordinate))
-                                    tilesToEmpty.Add(currentCoordinate, currentTile);
-
-                                if (!tilesToEmpty.ContainsKey(northCoordinate))
-                                {
-                                    grid.TryGetTile(northCoordinate, out Tile northTile);
-                                    tilesToEmpty.Add(northCoordinate, northTile);
-                                }
-
-                                if (!tilesToEmpty.ContainsKey(southCoordinate))
-                                {
-                                    grid.TryGetTile(southCoordinate, out Tile southTile);
-                                    tilesToEmpty.Add(southCoordinate, southTile);
-                                }
-                                break;
-                            default:
-                                break;
+                        if (!tilesToEmpty.ContainsKey(southCoordinate))
+                        {
+                            grid.TryGetTile(southCoordinate, out Tile southTile);
+                            tilesToEmpty.Add(southCoordinate, southTile);
                         }
                     }
                 }
@@ -902,20 +996,116 @@ public class TileGridGenerator : MonoBehaviour
                         string code = DetermineTileCode(grid, currentCoordinate);
 
                         if (TryGetTileSprite(code, out TileSprite sprite))
-                        {
                             currentTile.UpdateDisplay(sprite);
-                        }
                     }
                 }
             }
         }
     }
+    private bool TryGetTileSprite(string code, out TileSprite tileSprite)
+    {
+        tileSprite = TileSprite.Occupied;
+
+        switch (code)
+        {
+            case OCCUPIED_SURROUND:
+                tileSprite = TileSprite.Occupied;
+                break;
+            case EDGE_EAST_1:
+                tileSprite = TileSprite.EdgeEast;
+                break;
+            case EDGE_EAST_2:
+                tileSprite = TileSprite.EdgeEast;
+                break;
+            case EDGE_EAST_3:
+                tileSprite = TileSprite.EdgeEast;
+                break;
+            case EDGE_WEST_1:
+                tileSprite = TileSprite.EdgeWest;
+                break;
+            case EDGE_WEST_2:
+                tileSprite = TileSprite.EdgeWest;
+                break;
+            case EDGE_WEST_3:
+                tileSprite = TileSprite.EdgeWest;
+                break;
+            case EDGE_NORTH_1:
+                tileSprite = TileSprite.EdgeNorth;
+                break;
+            case EDGE_NORTH_2:
+                tileSprite = TileSprite.EdgeNorth;
+                break;
+            case EDGE_NORTH_3:
+                tileSprite = TileSprite.EdgeNorth;
+                break;
+            case EDGE_SOUTH_1:
+                tileSprite = TileSprite.EdgeSouth;
+                break;
+            case EDGE_SOUTH_2:
+                tileSprite = TileSprite.EdgeSouth;
+                break;
+            case EDGE_SOUTH_3:
+                tileSprite = TileSprite.EdgeSouth;
+                break;
+            case CORNER_SOUTHWEST_1:
+                tileSprite = TileSprite.CornerSouthWest;
+                break;
+            case CORNER_SOUTHWEST_2:
+                tileSprite = TileSprite.CornerSouthWest;
+                break;
+            case CORNER_SOUTHWEST_3:
+                tileSprite = TileSprite.CornerSouthWest;
+                break;
+            case CORNER_SOUTHEAST_1:
+                tileSprite = TileSprite.CornerSouthEast;
+                break;
+            case CORNER_SOUTHEAST_2:
+                tileSprite = TileSprite.CornerSouthEast;
+                break;
+            case CORNER_SOUTHEAST_3:
+                tileSprite = TileSprite.CornerSouthEast;
+                break;
+            case CORNER_NORTHWEST_1:
+                tileSprite = TileSprite.CornerNorthWest;
+                break;
+            case CORNER_NORTHWEST_2:
+                tileSprite = TileSprite.CornerNorthWest;
+                break;
+            case CORNER_NORTHWEST_3:
+                tileSprite = TileSprite.CornerNorthWest;
+                break;
+            case CORNER_NORTHEAST_1:
+                tileSprite = TileSprite.CornerNorthEast;
+                break;
+            case CORNER_NORTHEAST_2:
+                tileSprite = TileSprite.CornerNorthEast;
+                break;
+            case CORNER_NORTHEAST_3:
+                tileSprite = TileSprite.CornerNorthEast;
+                break;
+            case INVERSE_CORNER_NORTHWEST:
+                tileSprite = TileSprite.InverseCornerNorthWest;
+                break;
+            case INVERSE_CORNER_NORTHEAST:
+                tileSprite = TileSprite.InverseCornerNorthEast;
+                break;
+            case INVERSE_CORNER_SOUTHWEST:
+                tileSprite = TileSprite.InverseCornerSouthWest;
+                break;
+            case INVERSE_CORNER_SOUTHEAST:
+                tileSprite = TileSprite.InverseCornerSouthEast;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
 
     private void ChangeBorderSprites(TileGrid grid)
     {
         HashSet<Coordinate> borderCoordinates = new HashSet<Coordinate>();
-        Coordinate firstBorderCoordinate = new();
-        bool borderFound = false;
+
         for (int y = 0; y < grid.GetLength(1); y++)
         {
             for (int x = 0; x < grid.GetLength(0); x++)
@@ -924,178 +1114,57 @@ public class TileGridGenerator : MonoBehaviour
 
                 if (x == 0)
                 {
-                    if (FindBorder(grid, startCoordinate, Direction.North, out Coordinate borderCoordinate))
-                    {
-                        borderFound = true;
-                        firstBorderCoordinate = borderCoordinate;
-                        break;
-                    }
+                    if (FindBorder(grid, startCoordinate, Direction.East, out Coordinate borderCoordinate))
+                        borderCoordinates.Add(borderCoordinate);
                 }
 
-                if (x == grid.GetLength(1) - 1)
+                if (x == grid.GetLength(0) - 1)
                 {
-                    if (FindBorder(grid, startCoordinate, Direction.South, out Coordinate borderCoordinate))
-                    {
-                        borderFound = true;
-                        firstBorderCoordinate = borderCoordinate;
-                        break;
-                    }
-
+                    if (FindBorder(grid, startCoordinate, Direction.West, out Coordinate borderCoordinate))
+                        borderCoordinates.Add(borderCoordinate);
                 }
 
                 if (y == 0)
                 {
-                    if (FindBorder(grid, startCoordinate, Direction.East, out Coordinate borderCoordinate))
-                    {
-                        borderFound = true;
-                        firstBorderCoordinate = borderCoordinate;
-                        break;
-                    }
+                    if (FindBorder(grid, startCoordinate, Direction.North, out Coordinate borderCoordinate))
+                        borderCoordinates.Add(borderCoordinate);
                 }
 
-                if (y == grid.GetLength(0) - 1)
+                if (y == grid.GetLength(1) - 1)
                 {
-                    if (FindBorder(grid, startCoordinate, Direction.West, out Coordinate borderCoordinate))
-                    {
-                        borderFound = true;
-                        firstBorderCoordinate = borderCoordinate;
-                        break;
-                    }
+                    if (FindBorder(grid, startCoordinate, Direction.South, out Coordinate borderCoordinate))
+                        borderCoordinates.Add(borderCoordinate);
                 }
             }
-
-            if (borderFound)
-                break;
         }
 
-        if (!borderFound)
-            return;
-        deter
-        borderCoordinates = FindBorderCoordinates(grid, firstBorderCoordinate, borderCoordinates);
 
-        //for (int i = 0; i < grid.GetLength(0); i++)
-        //{
-        //    for (int j = 0; j < grid.GetLength(1); j++)
-        //    {
-        //        Coordinate startCoordinate = new Coordinate(i, j);
+        HashSet<Coordinate> additionalBorderCoordinates = new HashSet<Coordinate>();
 
-        //        if (j == 0)
-        //        {
-        //            if (FindBorder(grid, startCoordinate, Direction.North, out Coordinate borderCoordinate))
-        //            {
-        //                if (!borderCoordinates.Contains(borderCoordinate))
-        //                    borderCoordinates.Add(borderCoordinate);
-        //            }
-        //        }
+        foreach (var coordinate in borderCoordinates)
+        {
+            additionalBorderCoordinates.Add(coordinate);
+        }
 
-        //        if (j == grid.GetLength(1) - 1)
-        //        {
-        //            if (FindBorder(grid, startCoordinate, Direction.South, out Coordinate borderCoordinate))
-        //            {
-        //                if (!borderCoordinates.Contains(borderCoordinate))
-        //                    borderCoordinates.Add(borderCoordinate);
-        //            }
+        foreach (var coordinate in borderCoordinates)
+        {
+            additionalBorderCoordinates = FindBorderCoordinates(grid, coordinate, additionalBorderCoordinates);
+        }
 
-        //        }
+        string code = "";
+        foreach (var coordinate in additionalBorderCoordinates)
+        {
+            code = DetermineTileCode(grid, coordinate);
 
-        //        if (i == 0)
-        //        {
-        //            if (FindBorder(grid, startCoordinate, Direction.East, out Coordinate borderCoordinate))
-        //            {
-        //                if (!borderCoordinates.Contains(borderCoordinate))
-        //                    borderCoordinates.Add(borderCoordinate);
-        //            }
-        //        }
+            if (!TryGetBorderSprite(grid, coordinate, code, out TileSprite sprite))
+                continue;
 
-        //        if (i == grid.GetLength(0) - 1)
-        //        {
-        //            if (FindBorder(grid, startCoordinate, Direction.West, out Coordinate borderCoordinate))
-        //            {
-        //                if (!borderCoordinates.Contains(borderCoordinate))
-        //                    borderCoordinates.Add(borderCoordinate);
-        //            }
-        //        }
-        //    }
-        //}
+            if (!grid.TryGetTile(coordinate, out Tile tile))
+                continue;
 
-        //string code = "";
-        //HashSet<Coordinate> newBorderCoordinates = new HashSet<Coordinate>();
-
-        //foreach (var coordinate in borderCoordinates)
-        //{
-        //    code = DetermineTileCode(grid, coordinate);
-
-        //    FindAdditionalTiles(grid, code, coordinate, newBorderCoordinates, borderCoordinates);
-        //}
-
-        //foreach (var coordinate in newBorderCoordinates)
-        //{
-        //    borderCoordinates.Add(coordinate);
-        //}
-
-        //List<Coordinate> incorrectCoordinates = new List<Coordinate>();
-
-        //foreach (var coordinate in borderCoordinates)
-        //{
-        //    code = DetermineTileCode(grid, coordinate);
-        //    if (!TryGetBorderSprite(grid, coordinate, code, out TileSprite sprite, out Coordinate incorrectCoordinate))
-        //        continue;
-
-        //    incorrectCoordinates.Add(incorrectCoordinate);
-
-        //    if (!grid.TryGetTile(coordinate, out Tile tile))
-        //        continue;
-
-        //    tile.UpdateDisplay(sprite);
-        //}
+            tile.UpdateDisplay(sprite);
+        }
     }
-
-    private HashSet<Coordinate> FindBorderCoordinates(TileGrid grid, Coordinate startCoordinate, HashSet<Coordinate> borderCoordinates)
-    {
-        borderCoordinates.Add(startCoordinate);
-        string code = DetermineTileCode(grid, startCoordinate);
-
-        HashSet<Direction> availableDirection = new HashSet<Direction>();
-        availableDirection.Add(Direction.North);
-        availableDirection.Add(Direction.South);
-        availableDirection.Add(Direction.East);
-        availableDirection.Add(Direction.West);
-
-
-        CheckForDivot(grid, startCoordinate, code,)
-
-        Coordinate northCoordinate = startCoordinate + Coordinate.North;
-        Coordinate southCoordinate = startCoordinate + Coordinate.South;
-        Coordinate westCoordinate = startCoordinate + Coordinate.West;
-        Coordinate eastCoordinate = startCoordinate + Coordinate.East;
-
-
-        if (grid.TryGetTile(northCoordinate, out Tile northTile))
-        {
-            string code = DetermineTileCode(grid, northCoordinate);
-
-            if (northTile.State == TileState.Occupied && code != "111111111")
-                FindConnectedCoordinates(borderCoordinates, grid, northCoordinate);
-        }
-        if (grid.TryGetTile(southCoordinate, out Tile southTile))
-        {
-            if (southTile.State != TileState.Occupied && !connectedCoordinates.Contains(southCoordinate))
-                FindConnectedCoordinates(connectedCoordinates, grid, southCoordinate);
-        }
-        if (grid.TryGetTile(westCoordinate, out Tile westTile))
-        {
-            if (westTile.State != TileState.Occupied && !connectedCoordinates.Contains(westCoordinate))
-                FindConnectedCoordinates(connectedCoordinates, grid, westCoordinate);
-        }
-        if (grid.TryGetTile(eastCoordinate, out Tile eastTile))
-        {
-            if (eastTile.State != TileState.Occupied && !connectedCoordinates.Contains(eastCoordinate))
-                FindConnectedCoordinates(connectedCoordinates, grid, eastCoordinate);
-        }
-
-        return borderCoordinates;
-    }
-
     private bool FindBorder(TileGrid grid, Coordinate startCoordinate, Direction direction, out Coordinate borderCoordinate)
     {
         bool reachedOtherSide = false;
@@ -1113,7 +1182,7 @@ public class TileGridGenerator : MonoBehaviour
             if (tileState == TileState.Pellet)
                 break;
 
-            if (code != "111111111")
+            if (code != OCCUPIED_SURROUND)
             {
                 borderCoordinate = coordinateToCheck;
                 return true;
@@ -1129,434 +1198,228 @@ public class TileGridGenerator : MonoBehaviour
         borderCoordinate = new();
         return false;
     }
-    private void FindAdditionalTiles(TileGrid grid, string code, Coordinate currentCoordinate, HashSet<Coordinate> newBorderCoordinates, HashSet<Coordinate> foundBorderCoordinates)
+    private HashSet<Coordinate> FindBorderCoordinates(TileGrid grid, Coordinate startCoordinate, HashSet<Coordinate> borderCoordinates)
     {
-        Direction startDirection = Direction.North;
-        Direction backUpDirection = Direction.North;
+        borderCoordinates.Add(startCoordinate);
+        string code = DetermineTileCode(grid, startCoordinate);
 
-        if (CheckForDivot(grid, currentCoordinate, code, out bool edgeCase))
+        HashSet<Direction> availableDirections = new HashSet<Direction>();
+        availableDirections.Add(Direction.North);
+        availableDirections.Add(Direction.South);
+        availableDirections.Add(Direction.East);
+        availableDirections.Add(Direction.West);
+
+
+        if (CheckForDivot(grid, startCoordinate, code, out Direction divotDirection))
+            availableDirections.Remove(divotDirection);
+
+        List<Coordinate> coordinatesToCheck = new List<Coordinate>();
+
+        foreach (var direction in availableDirections)
+            coordinatesToCheck.Add(startCoordinate + Coordinate.GetCoordinateFromDirection(direction));
+
+        foreach (var coordinate in coordinatesToCheck)
         {
-            return;
+            if (!grid.TryGetTile(coordinate, out Tile tile))
+                continue;
+
+            if (borderCoordinates.Contains(coordinate))
+                continue;
+
+            if (tile.State != TileState.Occupied)
+                continue;
+
+            string newCoordinateCode = DetermineTileCode(grid, coordinate);
+            if (newCoordinateCode == OCCUPIED_SURROUND)
+                continue;
+
+            FindBorderCoordinates(grid, coordinate, borderCoordinates);
         }
 
-        switch (code)
-        {
-            //SouthEastCorner
-            case "101111111":
-                startDirection = Direction.North;
-                backUpDirection = Direction.West;
-                break;
-            //NorthWestCorner
-            case "111111110":
-                startDirection = Direction.South;
-                backUpDirection = Direction.East;
-                break;
-            //SouthWestCorner
-            case "111011111":
-                startDirection = Direction.North;
-                backUpDirection = Direction.East;
-                break;
-            //NorthEastCorner
-            case "111111011":
-                startDirection = Direction.South;
-                backUpDirection = Direction.West;
-                break;
-            //NorthEdge
-            case "111111000":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //NorthEdge
-            case "111111001":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //NorthEdge
-            case "111111100":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //SouthEdge
-            case "100011111":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //SouthEdge
-            case "100111111":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //SouthEdge
-            case "110011111":
-                startDirection = Direction.East;
-                backUpDirection = Direction.West;
-                break;
-            //WestEdge
-            case "111010110":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            case "111110110":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            case "111010111":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            //EastEdge
-            case "101101011":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            case "111101011":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            case "101101111":
-                startDirection = Direction.North;
-                backUpDirection = Direction.South;
-                break;
-            default:
-                return;
-        }
-
-        bool foundBorder = false;
-        Direction currentDirection;
-        Coordinate previousCoordinate;
-
-        if (!DetermineStartDirection(grid, currentCoordinate, startDirection, backUpDirection, newBorderCoordinates, foundBorderCoordinates, out currentDirection))
-            return;
-
-        while (!foundBorder)
-        {
-            previousCoordinate = currentCoordinate;
-            currentCoordinate += Coordinate.GetCoordinateFromDirection(currentDirection);
-
-            if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
-                break;
-
-            string newCode = DetermineTileCode(grid, currentCoordinate);
-
-
-            if (newCode != "111111111" && currentTile.State == TileState.Occupied)
-            {
-                if (foundBorderCoordinates.Contains(currentCoordinate))
-                {
-                    foundBorder = true;
-                }
-                else
-                {
-                    if (CheckForDivot(grid, currentCoordinate, newCode, out edgeCase))
-                    {
-                        foundBorder = true;
-                    }
-
-                    if (!edgeCase)
-                        newBorderCoordinates.Add(currentCoordinate);
-                }
-            }
-            else
-            {
-                if (!FindNextDirection(grid, previousCoordinate, newBorderCoordinates, foundBorderCoordinates, out Direction nextDirection))
-                {
-                    break;
-                }
-
-                currentCoordinate = previousCoordinate;
-                currentDirection = nextDirection;
-            }
-        }
+        return borderCoordinates;
     }
-    private bool CheckForDivot(TileGrid grid, Coordinate currentCoordinate, string code, out bool edgeCase)
+    private bool CheckForDivot(TileGrid grid, Coordinate currentCoordinate, string code, out Direction divotDirection)
     {
-        edgeCase = false;
-        Direction horizontalDivotDirection = Direction.North;
-        Direction verticalDivotDirection = Direction.North;
+        Direction horizontalDirection = Direction.North;
+        Direction verticalDirection = Direction.North;
+        divotDirection = Direction.North;
 
-        bool checkForEdgeDivot = false;
+        bool corner = false;
 
         switch (code)
         {
             //SouthEast
-            case "101111111":
-                verticalDivotDirection = Direction.South;
-                horizontalDivotDirection = Direction.East;
+            case BORDER_CORNER_SOUTHEAST:
+                verticalDirection = Direction.South;
+                horizontalDirection = Direction.East;
+                corner = true;
                 break;
             //NorthWest
-            case "111111110":
-                verticalDivotDirection = Direction.North;
-                horizontalDivotDirection = Direction.West;
+            case BORDER_CORNER_NORTHWEST:
+                verticalDirection = Direction.North;
+                horizontalDirection = Direction.West;
+                corner = true;
                 break;
             //SouthWest
-            case "111011111":
-                verticalDivotDirection = Direction.South;
-                horizontalDivotDirection = Direction.West;
+            case BORDER_CORNER_SOUTHWEST:
+                verticalDirection = Direction.South;
+                horizontalDirection = Direction.West;
+                corner = true;
                 break;
             //NorthEast
-            case "111111011":
-                verticalDivotDirection = Direction.North;
-                horizontalDivotDirection = Direction.East;
+            case BORDER_CORNER_NORTHEAST:
+                verticalDirection = Direction.North;
+                horizontalDirection = Direction.East;
+                corner = true;
+                break;
+            //SouthEdge
+            case BORDER_EDGE_SOUTH_1:
+                verticalDirection = Direction.South;
+                break;
+            case BORDER_EDGE_SOUTH_2:
+                verticalDirection = Direction.South;
+                break;
+            case BORDER_EDGE_SOUTH_3:
+                verticalDirection = Direction.South;
+                break;
+            //NorthEdge
+            case BORDER_EDGE_NORTH_1:
+                verticalDirection = Direction.North;
+                break;
+            case BORDER_EDGE_NORTH_2:
+                verticalDirection = Direction.North;
+                break;
+            case BORDER_EDGE_NORTH_3:
+                verticalDirection = Direction.North;
+                break;
+            //EastEdge
+            case BORDER_EDGE_EAST_1:
+                verticalDirection = Direction.East;
+                break;
+            case BORDER_EDGE_EAST_2:
+                verticalDirection = Direction.East;
+                break;
+            case BORDER_EDGE_EAST_3:
+                verticalDirection = Direction.East;
+                break;
+            //WestEdge
+            case BORDER_EDGE_WEST_1:
+                verticalDirection = Direction.West;
+                break;
+            case BORDER_EDGE_WEST_2:
+                verticalDirection = Direction.West;
+                break;
+            case BORDER_EDGE_WEST_3:
+                verticalDirection = Direction.West;
                 break;
             default:
-                checkForEdgeDivot = true;
-                break;
+                return false;
         }
 
-        if (checkForEdgeDivot)
-        {
-            string edgeCode = "";
-            switch (code)
-            {
-                //North Edge cases
-                case "111111000":
-                    Coordinate northCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.North);
-                    if (!grid.TryGetTile(northCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, northCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "111111001":
-                    northCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.North);
-                    if (!grid.TryGetTile(northCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, northCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "111111100":
-                    northCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.North);
-                    if (!grid.TryGetTile(northCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, northCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-
-                //South Edge cases
-                case "100011111":
-                    Coordinate southCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.South);
-                    if (!grid.TryGetTile(southCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, southCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "110011111":
-                    southCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.South);
-                    if (!grid.TryGetTile(southCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, southCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "100111111":
-                    southCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.South);
-                    if (!grid.TryGetTile(southCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, southCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-
-                //West Edge cases
-                case "111010110":
-                    Coordinate westCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.West);
-                    if (!grid.TryGetTile(westCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, westCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "111110110":
-                    westCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.West);
-                    if (!grid.TryGetTile(westCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, westCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "111010111":
-                    westCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.West);
-                    if (!grid.TryGetTile(westCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, westCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-
-                //East Edge cases
-                case "101101011":
-                    Coordinate eastCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.East);
-                    if (!grid.TryGetTile(eastCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, eastCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "111101011":
-                    eastCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.East);
-                    if (!grid.TryGetTile(eastCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, eastCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case "101101111":
-                    eastCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(Direction.East);
-
-                    if (!grid.TryGetTile(eastCoordinate))
-                        break;
-
-                    edgeCode = DetermineTileCode(grid, eastCoordinate);
-                    if (edgeCode == "101111111" || edgeCode == "111111110" || edgeCode == "111011111" || edgeCode == "111111011")
-                    {
-                        edgeCase = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                default:
-                    return false;
-            }
-        }
-
-        Coordinate horizontalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(horizontalDivotDirection);
-        Coordinate verticalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(verticalDivotDirection);
+        Coordinate horizontalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(horizontalDirection);
+        Coordinate verticalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(verticalDirection);
 
         bool divot = false;
 
-        if (grid.TryGetTile(horizontalCoordinate, out Tile horizontalTile))
+        if (corner)
+            divot = CheckCornerDivot(grid, horizontalDirection, verticalDirection, horizontalCoordinate, verticalCoordinate, out divotDirection);
+        else
+            divot = CheckEdgeDivot(grid, code, verticalCoordinate, out divotDirection);
+
+        return divot;
+    }
+    private bool CheckEdgeDivot(TileGrid grid, string code, Coordinate coordinate, out Direction divotDirection)
+    {
+        divotDirection = Direction.North;
+        bool divot = false;
+
+        if (grid.TryGetTile(coordinate))
         {
-            string horizontalCode = DetermineTileCode(grid, horizontalCoordinate);
-            bool corner = horizontalCode == "101111111" || horizontalCode == "111111110" || horizontalCode == "111011111" || horizontalCode == "111111011";
-            bool westEdge = horizontalCode == "111010110" || horizontalCode == "111110110" || horizontalCode == "111010111";
-            bool eastEdge = horizontalCode == "101101011" || horizontalCode == "111101011" || horizontalCode == "100111111";
+            string newCode = DetermineTileCode(grid, coordinate);
 
-            if (corner || westEdge || eastEdge)
-                divot = true;
+            if (code == BORDER_EDGE_WEST_1 || code == BORDER_EDGE_WEST_2 || code == BORDER_EDGE_WEST_3)
+            {
+                if (newCode == BORDER_CORNER_NORTHEAST)
+                {
+                    divotDirection = Direction.South;
+                    divot = true;
+                }
 
-        }
+                if (newCode == BORDER_CORNER_SOUTHEAST)
+                {
+                    divotDirection = Direction.North;
+                    divot = true;
+                }
 
-        if (grid.TryGetTile(verticalCoordinate, out Tile verticalTile))
-        {
-            string verticalCode = DetermineTileCode(grid, verticalCoordinate);
+            }
 
-            bool corner = verticalCode == "101111111" || verticalCode == "111111110" || verticalCode == "111011111" || verticalCode == "111111011";
-            bool northEdge = verticalCode == "111111000" || verticalCode == "111111001" || verticalCode == "111111100";
-            bool southEdge = verticalCode == "100011111" || verticalCode == "110011111" || verticalCode == "100111111";
+            if (code == BORDER_EDGE_EAST_1 || code == BORDER_EDGE_EAST_2 || code == BORDER_EDGE_EAST_3)
+            {
+                if (newCode == BORDER_CORNER_NORTHWEST)
+                {
+                    divotDirection = Direction.South;
+                    divot = true;
+                }
 
-            if (corner || northEdge || southEdge)
-                divot = true;
+                if (newCode == BORDER_CORNER_SOUTHWEST)
+                {
+                    divotDirection = Direction.North;
+                    divot = true;
+                }
+            }
+
+            if (code == BORDER_EDGE_NORTH_1 || code == BORDER_EDGE_NORTH_2 || code == BORDER_EDGE_NORTH_3)
+            {
+                if (newCode == BORDER_CORNER_SOUTHWEST)
+                {
+                    divotDirection = Direction.East;
+                    divot = true;
+                }
+
+                if (newCode == BORDER_CORNER_SOUTHEAST)
+                {
+                    divotDirection = Direction.West;
+                    divot = true;
+                }
+
+            }
+
+            if (code == BORDER_EDGE_SOUTH_1 || code == BORDER_EDGE_SOUTH_2 || code == BORDER_EDGE_SOUTH_3)
+            {
+                if (newCode == BORDER_CORNER_NORTHWEST)
+                {
+                    divotDirection = Direction.East;
+                    divot = true;
+                }
+
+                if (newCode == BORDER_CORNER_NORTHEAST)
+                {
+                    divotDirection = Direction.West;
+                    divot = true;
+                }
+            }
         }
 
         return divot;
     }
-    private bool CheckForDivot(TileGrid grid, Coordinate currentCoordinate, string code, out Direction divotDirection)
+    private bool CheckCornerDivot(TileGrid grid, Direction horizontalDirection, Direction verticalDirection, Coordinate horizontalCoordinate, Coordinate verticalCoordinate, out Direction divotDirection)
     {
-        Direction horizontalDivotDirection = Direction.North;
-        Direction verticalDivotDirection = Direction.North;
-
-        divotDirection = Direction.North;
-
-        switch (code)
-        {
-            //SouthEast
-            case "101111111":
-                verticalDivotDirection = Direction.South;
-                horizontalDivotDirection = Direction.East;
-                break;
-            //NorthWest
-            case "111111110":
-                verticalDivotDirection = Direction.North;
-                horizontalDivotDirection = Direction.West;
-                break;
-            //SouthWest
-            case "111011111":
-                verticalDivotDirection = Direction.South;
-                horizontalDivotDirection = Direction.West;
-                break;
-            //NorthEast
-            case "111111011":
-                verticalDivotDirection = Direction.North;
-                horizontalDivotDirection = Direction.East;
-                break;
-            default:
-                break;
-        }
-
-        Coordinate horizontalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(horizontalDivotDirection);
-        Coordinate verticalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(verticalDivotDirection);
-
         bool divot = false;
+        divotDirection = Direction.North;
 
         if (grid.TryGetTile(horizontalCoordinate))
         {
             string horizontalCode = DetermineTileCode(grid, horizontalCoordinate);
-            bool corner = horizontalCode == "101111111" || horizontalCode == "111111110" || horizontalCode == "111011111" || horizontalCode == "111111011";
-            bool westEdge = horizontalCode == "111010110" || horizontalCode == "111110110" || horizontalCode == "111010111";
-            bool eastEdge = horizontalCode == "101101011" || horizontalCode == "111101011" || horizontalCode == "100111111";
 
-            if (corner || westEdge || eastEdge)
+            bool adjacentCorner = horizontalCode == BORDER_CORNER_NORTHWEST || horizontalCode == BORDER_CORNER_NORTHEAST || horizontalCode == BORDER_CORNER_SOUTHWEST || horizontalCode == BORDER_CORNER_SOUTHEAST;
+            bool adjacentEdgeWest = horizontalCode == BORDER_EDGE_WEST_1 || horizontalCode == BORDER_EDGE_WEST_2 || horizontalCode == BORDER_EDGE_WEST_3;
+            bool adjacentEdgeEast = horizontalCode == BORDER_EDGE_EAST_1 || horizontalCode == BORDER_EDGE_EAST_2 || horizontalCode == BORDER_EDGE_EAST_3;
+
+            if (adjacentCorner || adjacentEdgeWest || adjacentEdgeEast)
             {
-                divotDirection = horizontalDivotDirection;
+                divotDirection = TranslateDirection(verticalDirection);
                 divot = true;
+                return divot;
             }
 
         }
@@ -1565,162 +1428,132 @@ public class TileGridGenerator : MonoBehaviour
         {
             string verticalCode = DetermineTileCode(grid, verticalCoordinate);
 
-            bool corner = verticalCode == "101111111" || verticalCode == "111111110" || verticalCode == "111011111" || verticalCode == "111111011";
-            bool northEdge = verticalCode == "111111000" || verticalCode == "111111001" || verticalCode == "111111100";
-            bool southEdge = verticalCode == "100011111" || verticalCode == "110011111" || verticalCode == "100111111";
+            bool adjacentCorner = verticalCode == BORDER_CORNER_NORTHWEST || verticalCode == BORDER_CORNER_NORTHEAST || verticalCode == BORDER_CORNER_SOUTHWEST || verticalCode == BORDER_CORNER_SOUTHEAST;
+            bool adjacentEdgeNorth = verticalCode == "100011111" || verticalCode == "110011111" || verticalCode == "100111111";
+            bool adjacentEdgeSouth = verticalCode == "111111000" || verticalCode == "111111100" || verticalCode == "111111001";
 
-            if (corner || northEdge || southEdge)
+
+            if (adjacentCorner || adjacentEdgeNorth || adjacentEdgeSouth)
             {
-                divotDirection = verticalDivotDirection;
+                divotDirection = TranslateDirection(horizontalDirection);
                 divot = true;
+                return divot;
             }
         }
-
-        return divot;
-    }
-    private bool DetermineStartDirection(TileGrid grid, Coordinate currentCoordinate, Direction horizontalDirection, Direction verticalDirection, HashSet<Coordinate> newBorderCoordinates, HashSet<Coordinate> foundBorderCoordinates, out Direction startDirection)
-    {
-        startDirection = Direction.North;
-        Coordinate horizontalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(horizontalDirection);
-        Coordinate verticalCoordinate = currentCoordinate + Coordinate.GetCoordinateFromDirection(verticalDirection);
-
-        if (grid.TryGetTile(horizontalCoordinate, out Tile horizontalTile) && !newBorderCoordinates.Contains(horizontalCoordinate) && !foundBorderCoordinates.Contains(horizontalCoordinate))
-        {
-            startDirection = horizontalDirection;
-            return true;
-        }
-
-        else if (grid.TryGetTile(verticalCoordinate, out Tile verticalTile) && !newBorderCoordinates.Contains(verticalCoordinate) && !foundBorderCoordinates.Contains(verticalCoordinate))
-        {
-            startDirection = verticalDirection;
-            return true;
-        }
-
         return false;
     }
-    private bool FindNextDirection(TileGrid grid, Coordinate startCoordinate, HashSet<Coordinate> newBorderCoordinates, HashSet<Coordinate> foundBorderCoordinates, out Direction direction)
+    private Direction TranslateDirection(Direction verticalDirection)
     {
-        direction = Direction.North;
-        Coordinate northCoordinate = startCoordinate + Coordinate.North;
-        Coordinate southCoordinate = startCoordinate + Coordinate.South;
-        Coordinate westCoordinate = startCoordinate + Coordinate.West;
-        Coordinate eastCoordinate = startCoordinate + Coordinate.East;
-
-
-        if (grid.TryGetTile(northCoordinate, out Tile northTile))
+        switch (verticalDirection)
         {
-            if (northTile.State == TileState.Occupied && !newBorderCoordinates.Contains(northCoordinate) && !foundBorderCoordinates.Contains(northCoordinate) && DetermineTileCode(grid, northCoordinate) != "111111111")
-            {
-                direction = Direction.North;
-                return true;
-            }
+            case Direction.North:
+                return Direction.South;
+            case Direction.South:
+                return Direction.North;
+            case Direction.East:
+                return Direction.West;
+            case Direction.West:
+                return Direction.East;
+            default:
+                return Direction.North;
         }
-        if (grid.TryGetTile(southCoordinate, out Tile southTile))
-        {
-            if (southTile.State == TileState.Occupied && !newBorderCoordinates.Contains(southCoordinate) && !foundBorderCoordinates.Contains(southCoordinate) && DetermineTileCode(grid, southCoordinate) != "111111111")
-            {
-                direction = Direction.South;
-                return true;
-            }
-        }
-        if (grid.TryGetTile(westCoordinate, out Tile westTile))
-        {
-            if (westTile.State == TileState.Occupied && !newBorderCoordinates.Contains(westCoordinate) && !foundBorderCoordinates.Contains(westCoordinate) && DetermineTileCode(grid, westCoordinate) != "111111111")
-            {
-                direction = Direction.West;
-                return true;
-            }
-        }
-        if (grid.TryGetTile(eastCoordinate, out Tile eastTile))
-        {
-            if (eastTile.State == TileState.Occupied && !newBorderCoordinates.Contains(eastCoordinate) && !foundBorderCoordinates.Contains(eastCoordinate) && DetermineTileCode(grid, eastCoordinate) != "111111111")
-            {
-                direction = Direction.East;
-                return true;
-            }
-        }
-
-        return false;
     }
-    private bool TryGetBorderSprite(TileGrid grid, Coordinate coordinate, string code, out TileSprite sprite, out Coordinate incorrectCoordinate)
+    private bool TryGetBorderSprite(TileGrid grid, Coordinate coordinate, string code, out TileSprite sprite)
     {
         sprite = TileSprite.Occupied;
-        incorrectCoordinate = new(-1, -1);
 
         switch (code)
         {
-            case "111111000":
-                if (CheckForDivot(grid, coordinate, "111111000", out bool edgeCase))
+            case BORDER_EDGE_NORTH_1:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_NORTH_1, out Direction direction))
                     sprite = TileSprite.EdgeSouth;
                 else
                     sprite = TileSprite.BorderEdgeNorth;
                 break;
-            case "111111001":
-                if (CheckForDivot(grid, coordinate, "111111001", out edgeCase))
+            case BORDER_EDGE_NORTH_2:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_NORTH_2, out direction))
                     sprite = TileSprite.EdgeSouth;
                 else
                     sprite = TileSprite.BorderEdgeNorth;
                 break;
-            case "111111100":
-                if (CheckForDivot(grid, coordinate, "111111100", out edgeCase))
+            case BORDER_EDGE_NORTH_3:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_NORTH_3, out direction))
                     sprite = TileSprite.EdgeSouth;
                 else
                     sprite = TileSprite.BorderEdgeNorth;
                 break;
-            case "100011111":
-                if (CheckForDivot(grid, coordinate, "100011111", out edgeCase))
+            case BORDER_EDGE_SOUTH_1:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_SOUTH_1, out direction))
                     sprite = TileSprite.EdgeNorth;
                 else
                     sprite = TileSprite.BorderEdgeSouth;
                 break;
-            case "110011111":
-                if (CheckForDivot(grid, coordinate, "110011111", out edgeCase))
+            case BORDER_EDGE_SOUTH_2:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_SOUTH_2, out direction))
                     sprite = TileSprite.EdgeNorth;
                 else
                     sprite = TileSprite.BorderEdgeSouth;
                 break;
-            case "100111111":
-                if (CheckForDivot(grid, coordinate, "100111111", out edgeCase))
+            case BORDER_EDGE_SOUTH_3:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_SOUTH_3, out direction))
                     sprite = TileSprite.EdgeNorth;
                 else
                     sprite = TileSprite.BorderEdgeSouth;
                 break;
-            case "111010110":
-                sprite = TileSprite.BorderEdgeWest;
+            case BORDER_EDGE_WEST_1:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_WEST_1, out direction))
+                    sprite = TileSprite.EdgeEast;
+                else
+                    sprite = TileSprite.BorderEdgeWest;
                 break;
-            case "111110110":
-                sprite = TileSprite.BorderEdgeWest;
+            case BORDER_EDGE_WEST_2:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_WEST_2, out direction))
+                    sprite = TileSprite.EdgeEast;
+                else
+                    sprite = TileSprite.BorderEdgeWest;
                 break;
-            case "111010111":
-                sprite = TileSprite.BorderEdgeWest;
+            case BORDER_EDGE_WEST_3:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_WEST_3, out direction))
+                    sprite = TileSprite.EdgeEast;
+                else
+                    sprite = TileSprite.BorderEdgeWest;
                 break;
-            case "101101011":
-                sprite = TileSprite.BorderEdgeEast;
+            case BORDER_EDGE_EAST_1:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_EAST_1, out direction))
+                    sprite = TileSprite.EdgeWest;
+                else
+                    sprite = TileSprite.BorderEdgeEast;
                 break;
-            case "111101011":
-                sprite = TileSprite.BorderEdgeEast;
+            case BORDER_EDGE_EAST_2:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_EAST_2, out direction))
+                    sprite = TileSprite.EdgeWest;
+                else
+                    sprite = TileSprite.BorderEdgeEast;
                 break;
-            case "101101111":
-                sprite = TileSprite.BorderEdgeEast;
+            case BORDER_EDGE_EAST_3:
+                if (CheckForDivot(grid, coordinate, BORDER_EDGE_EAST_3, out direction))
+                    sprite = TileSprite.EdgeWest;
+                else
+                    sprite = TileSprite.BorderEdgeEast;
                 break;
-            case "101111111":
-                if (CheckForDivot(grid, coordinate, "101111111", out Direction divotDirection))
+            case BORDER_CORNER_SOUTHEAST:
+                if (CheckForDivot(grid, coordinate, BORDER_CORNER_SOUTHEAST, out Direction divotDirection))
                 {
-                    if (grid.TryGetTile(coordinate + Coordinate.South))
-                    {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111001")
-                        {
-                            sprite = TileSprite.InverseCornerNorthWest;
-                            break;
-                        }
-                    }
+                    //if (grid.TryGetTile(coordinate + Coordinate.South))
+                    //{
+                    //    if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111001")
+                    //    {
+                    //        sprite = TileSprite.InverseCornerNorthWest;
+                    //        break;
+                    //    }
+                    //}
                     switch (divotDirection)
                     {
-                        case Direction.East:
-                            sprite = TileSprite.BorderSouthFunnelWest;
-                            break;
-                        case Direction.South:
+                        case Direction.West:
                             sprite = TileSprite.BorderEastFunnelNorth;
+                            break;
+                        case Direction.North:
+                            sprite = TileSprite.BorderSouthFunnelWest;
                             break;
                         default:
                             sprite = TileSprite.BorderCornerSouthEast;
@@ -1730,53 +1563,25 @@ public class TileGridGenerator : MonoBehaviour
                 else
                     sprite = TileSprite.BorderCornerSouthEast;
                 break;
-            case "111111110":
-                if (CheckForDivot(grid, coordinate, "111111110", out divotDirection))
+            case BORDER_CORNER_SOUTHWEST:
+                if (CheckForDivot(grid, coordinate, BORDER_CORNER_SOUTHWEST, out divotDirection))
                 {
-                    if (grid.TryGetTile(coordinate + Coordinate.North))
-                    {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == "110011111")
-                        {
-                            sprite = TileSprite.InverseCornerSouthEast;
-                            break;
-                        }
-                    }
-                    switch (divotDirection)
-                    {
-                        case Direction.West:
-                            sprite = TileSprite.BorderNorthFunnelEast;
-                            break;
-                        case Direction.North:
-                            sprite = TileSprite.BorderWestFunnelSouth;
-                            incorrectCoordinate = coordinate + Coordinate.North;
-                            break;
-                        default:
-                            sprite = TileSprite.BorderCornerNorthWest;
-                            break;
-                    }
-                }
-                else
-                    sprite = TileSprite.BorderCornerNorthWest;
-                break;
-            case "111011111":
-                if (CheckForDivot(grid, coordinate, "111011111", out divotDirection))
-                {
-                    if (grid.TryGetTile(coordinate + Coordinate.South))
-                    {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111100")
-                        {
-                            sprite = TileSprite.InverseCornerNorthEast;
-                            break;
-                        }
-                    }
+                    //if (grid.TryGetTile(coordinate + Coordinate.South))
+                    //{
+                    //    if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111100")
+                    //    {
+                    //        sprite = TileSprite.InverseCornerNorthEast;
+                    //        break;
+                    //    }
+                    //}
 
                     switch (divotDirection)
                     {
-                        case Direction.West:
-                            sprite = TileSprite.BorderSouthFunnelEast;
-                            break;
-                        case Direction.South:
+                        case Direction.East:
                             sprite = TileSprite.BorderWestFunnelNorth;
+                            break;
+                        case Direction.North:
+                            sprite = TileSprite.BorderSouthFunnelEast;
                             break;
                         default:
                             sprite = TileSprite.BorderCornerSouthWest;
@@ -1786,24 +1591,51 @@ public class TileGridGenerator : MonoBehaviour
                 else
                     sprite = TileSprite.BorderCornerSouthWest;
                 break;
-            case "111111011":
-                if (CheckForDivot(grid, coordinate, "111111011", out divotDirection))
+            case BORDER_CORNER_NORTHWEST:
+                if (CheckForDivot(grid, coordinate, BORDER_CORNER_NORTHWEST, out divotDirection))
                 {
-                    if (grid.TryGetTile(coordinate + Coordinate.North))
-                    {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == "100111111")
-                        {
-                            sprite = TileSprite.InverseCornerSouthWest;
-                            break;
-                        }
-                    }
+                    //if (grid.TryGetTile(coordinate + Coordinate.North))
+                    //{
+                    //    if (DetermineTileCode(grid, coordinate + Coordinate.North) == "110011111")
+                    //    {
+                    //        sprite = TileSprite.InverseCornerSouthEast;
+                    //        break;
+                    //    }
+                    //}
                     switch (divotDirection)
                     {
                         case Direction.East:
-                            sprite = TileSprite.BorderNorthFunnelWest;
+                            sprite = TileSprite.BorderWestFunnelSouth;
                             break;
-                        case Direction.North:
+                        case Direction.South:
+                            sprite = TileSprite.BorderNorthFunnelEast;
+                            break;
+                        default:
+                            sprite = TileSprite.BorderCornerNorthWest;
+                            break;
+                    }
+                }
+                else
+                    sprite = TileSprite.BorderCornerNorthWest;
+                break;
+            case BORDER_CORNER_NORTHEAST:
+                if (CheckForDivot(grid, coordinate, BORDER_CORNER_NORTHEAST, out divotDirection))
+                {
+                    //if (grid.TryGetTile(coordinate + Coordinate.North))
+                    //{
+                    //    if (DetermineTileCode(grid, coordinate + Coordinate.North) == "100111111")
+                    //    {
+                    //        sprite = TileSprite.InverseCornerSouthWest;
+                    //        break;
+                    //    }
+                    //}
+                    switch (divotDirection)
+                    {
+                        case Direction.West:
                             sprite = TileSprite.BorderEastFunnelSouth;
+                            break;
+                        case Direction.South:
+                            sprite = TileSprite.BorderNorthFunnelWest;
                             break;
                         default:
                             sprite = TileSprite.BorderCornerNorthEast;
@@ -1812,149 +1644,6 @@ public class TileGridGenerator : MonoBehaviour
                 }
                 else
                     sprite = TileSprite.BorderCornerNorthEast;
-                break;
-            default:
-                return false;
-        }
-
-        return true;
-    }
-
-    private string DetermineTileCode(TileGrid grid, Coordinate currentCoordinate)
-    {
-        Coordinate northWestCoordinate = currentCoordinate + Coordinate.NorthWest;
-        Coordinate northCoordinate = currentCoordinate + Coordinate.North;
-        Coordinate northEastCoordinate = currentCoordinate + Coordinate.NorthEast;
-        Coordinate eastCoordinate = currentCoordinate + Coordinate.East;
-        Coordinate southEastCoordinate = currentCoordinate + Coordinate.SouthEast;
-        Coordinate southCoordinate = currentCoordinate + Coordinate.South;
-        Coordinate southWestCoordinate = currentCoordinate + Coordinate.SouthWest;
-        Coordinate westCoordinate = currentCoordinate + Coordinate.West;
-
-        List<Coordinate> coordinates = new()
-        {
-            currentCoordinate,
-            northWestCoordinate,
-            northCoordinate,
-            northEastCoordinate,
-            westCoordinate,
-            eastCoordinate,
-            southWestCoordinate,
-            southCoordinate,
-            southEastCoordinate,
-        };
-
-        //1 will equal occupied tile, 0 will equal unocccupied
-        string code = "";
-
-        for (int i = 0; i < coordinates.Count; i++)
-        {
-            if (grid.TryGetTile(coordinates[i], out Tile tile))
-            {
-                if (tile.State == TileState.Occupied)
-                    code += 1;
-                else
-                    code += 0;
-            }
-            else
-                //If tile is outside grid
-                code += 1;
-        }
-
-        return code;
-    }
-    private bool TryGetTileSprite(string code, out TileSprite tileSprite)
-    {
-        tileSprite = TileSprite.Occupied;
-
-        switch (code)
-        {
-            case "11111111":
-                tileSprite = TileSprite.Occupied;
-                break;
-            case "111010110":
-                tileSprite = TileSprite.EdgeEast;
-                break;
-            case "111010111":
-                tileSprite = TileSprite.EdgeEast;
-                break;
-            case "111110110":
-                tileSprite = TileSprite.EdgeEast;
-                break;
-            case "101101011":
-                tileSprite = TileSprite.EdgeWest;
-                break;
-            case "101101111":
-                tileSprite = TileSprite.EdgeWest;
-                break;
-            case "111101011":
-                tileSprite = TileSprite.EdgeWest;
-                break;
-            case "100011111":
-                tileSprite = TileSprite.EdgeNorth;
-                break;
-            case "100111111":
-                tileSprite = TileSprite.EdgeNorth;
-                break;
-            case "110011111":
-                tileSprite = TileSprite.EdgeNorth;
-                break;
-            case "111111000":
-                tileSprite = TileSprite.EdgeSouth;
-                break;
-            case "111111001":
-                tileSprite = TileSprite.EdgeSouth;
-                break;
-            case "111111100":
-                tileSprite = TileSprite.EdgeSouth;
-                break;
-            case "101101000":
-                tileSprite = TileSprite.CornerSouthWest;
-                break;
-            case "111101000":
-                tileSprite = TileSprite.CornerSouthWest;
-                break;
-            case "101101001":
-                tileSprite = TileSprite.CornerSouthWest;
-                break;
-            case "111010000":
-                tileSprite = TileSprite.CornerSouthEast;
-                break;
-            case "111110000":
-                tileSprite = TileSprite.CornerSouthEast;
-                break;
-            case "111010100":
-                tileSprite = TileSprite.CornerSouthEast;
-                break;
-            case "100001011":
-                tileSprite = TileSprite.CornerNorthWest;
-                break;
-            case "100001111":
-                tileSprite = TileSprite.CornerNorthWest;
-                break;
-            case "100101011":
-                tileSprite = TileSprite.CornerNorthWest;
-                break;
-            case "100010110":
-                tileSprite = TileSprite.CornerNorthEast;
-                break;
-            case "100010111":
-                tileSprite = TileSprite.CornerNorthEast;
-                break;
-            case "110010110":
-                tileSprite = TileSprite.CornerNorthEast;
-                break;
-            case "101111111":
-                tileSprite = TileSprite.InverseCornerNorthWest;
-                break;
-            case "111011111":
-                tileSprite = TileSprite.InverseCornerNorthEast;
-                break;
-            case "111111011":
-                tileSprite = TileSprite.InverseCornerSouthWest;
-                break;
-            case "111111110":
-                tileSprite = TileSprite.InverseCornerSouthEast;
                 break;
             default:
                 return false;
