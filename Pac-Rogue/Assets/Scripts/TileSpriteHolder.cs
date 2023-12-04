@@ -7,6 +7,7 @@ public class TileSpriteHolder : MonoBehaviour
     public static TileSpriteHolder Instance;
     [SerializeField] Sprite emptySprite;
     [SerializeField] Sprite pelletSprite;
+    [SerializeField] Sprite powerPelletSprite;
     [SerializeField] Sprite occupiedSprite;
     [SerializeField] Sprite edgeNorthSprite;
     [SerializeField] Sprite edgeSouthSprite;
@@ -68,6 +69,7 @@ public class TileSpriteHolder : MonoBehaviour
             //Normal tiles
             TileSprite.Empty => emptySprite,
             TileSprite.Pellet => pelletSprite,
+            TileSprite.PowerPellet => powerPelletSprite,
             TileSprite.Occupied => occupiedSprite,
             TileSprite.EdgeNorth => edgeNorthSprite,
             TileSprite.EdgeSouth => edgeSouthSprite,
@@ -122,6 +124,7 @@ public enum TileSprite
 {
     Empty,
     Pellet,
+    PowerPellet,
     Occupied,
     EdgeNorth,
     EdgeSouth,

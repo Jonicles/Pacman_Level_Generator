@@ -10,6 +10,7 @@ public class TileGridGenerator : MonoBehaviour
 
     const int tileGroupDimension = 3;
     TileGrid currentGrid;
+    ColorTracker colorTracker;
 
     bool StartInfinity = false;
 
@@ -94,9 +95,13 @@ public class TileGridGenerator : MonoBehaviour
     const string BORDER_CORNER_SOUTHWEST = "111011111";
 
 
-    private void Start()
+    private void Awake()
     {
-        //GenerateGrid(5, 8);
+        if (TryGetComponent(out ColorTracker tracker))
+            colorTracker = tracker;
+        else
+            colorTracker = gameObject.AddComponent<ColorTracker>();
+            
     }
 
     private void Update()
@@ -164,8 +169,12 @@ public class TileGridGenerator : MonoBehaviour
 
         ChangeBorderSprites(grid);
 
+        PlacePowerPellets(grid);
+
+        grid.SetGridColor(colorTracker.GenerateNewColor());
         return grid;
     }
+
 
     private TileGroup[,] GenerateTileGroups(int width, int height)
     {
@@ -1650,5 +1659,69 @@ public class TileGridGenerator : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void PlacePowerPellets(TileGrid grid)
+    {
+        Coordinate topLeftCoordinate = new();
+        Coordinate bottomLeftCoordinate = new();
+        Coordinate topRightCoordinate = new();
+        Coordinate bottomRightCoordinate = new();
+
+        bool bottomLeftTileFound = false;
+        bool topLeftTileFound = false;
+
+        for (int y = 0; y < grid.GetLength(1); y++)
+        {
+            for (int x = 0; x < grid.GetLength(0); x++)
+            {
+                Coordinate currentCoordinate = new Coordinate(x, y);
+
+                if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    continue;
+
+                if (currentTile.State != TileState.Pellet)
+                    continue;
+
+                bottomLeftCoordinate = currentCoordinate + new Coordinate(0, 3);
+                bottomRightCoordinate = GetMirroredCoordinate(grid, x, y + 3);
+                bottomLeftTileFound = true;
+                break;
+            }
+
+            if (bottomLeftTileFound == true)
+                break;
+        }
+
+        for (int y = grid.GetLength(1) - 1; y > 0; y--)
+        {
+            for (int x = 0; x < grid.GetLength(0); x++)
+            {
+                Coordinate currentCoordinate = new Coordinate(x, y);
+
+                if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
+                    continue;
+
+                if (currentTile.State != TileState.Pellet)
+                    continue;
+
+                topLeftCoordinate = currentCoordinate + new Coordinate(0, -3);
+                topRightCoordinate = GetMirroredCoordinate(grid, x, y - 3);
+                topLeftTileFound = true;
+                break;
+            }
+
+            if (topLeftTileFound == true)
+                break;
+        }
+
+        if (grid.TryGetTile(topLeftCoordinate, out Tile topLeftTile))
+            topLeftTile.PlacePowerPellet();
+        if (grid.TryGetTile(topRightCoordinate, out Tile topRightTile))
+            topRightTile.PlacePowerPellet();
+        if (grid.TryGetTile(bottomLeftCoordinate, out Tile bottomLeftTile))
+            bottomLeftTile.PlacePowerPellet();
+        if (grid.TryGetTile(bottomRightCoordinate, out Tile bottomRightTile))
+            bottomRightTile.PlacePowerPellet();
     }
 }

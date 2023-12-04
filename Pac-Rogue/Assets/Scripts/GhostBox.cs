@@ -100,7 +100,7 @@ public class GhostBox
         { new Coordinate(7,4), new Tuple<TileState, TileSprite>(TileState.GhostSpace, TileSprite.Empty) },
         { new Coordinate(7,5), new Tuple<TileState, TileSprite>(TileState.GhostSpace, TileSprite.Empty) },
         { new Coordinate(7,6), new Tuple<TileState, TileSprite>(TileState.GhostSpace, TileSprite.Empty) },
-        { new Coordinate(7,7), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.GhostDoor) },
+        { new Coordinate(7,7), new Tuple<TileState, TileSprite>(TileState.GhostSpace, TileSprite.GhostDoor) },
         { new Coordinate(7,8), new Tuple<TileState, TileSprite>(TileState.Empty, TileSprite.Empty) },
         { new Coordinate(7,9), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.Occupied) },
         { new Coordinate(7,10), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.Occupied) },

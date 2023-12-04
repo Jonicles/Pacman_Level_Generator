@@ -262,5 +262,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2452614400046322514, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}
+      propertyPath: powerPelletSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 01b6ef1771898de4e82678b0d75773e9, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b88673e2a7d0dd74cbcc80dd52dbb8b3, type: 3}

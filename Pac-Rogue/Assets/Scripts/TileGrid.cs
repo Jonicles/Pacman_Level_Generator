@@ -69,6 +69,15 @@ public class TileGrid
         return length;
     }
 
+    public void SetGridColor(Color newColor)
+    {
+        foreach (var tile in grid)
+        {
+            if (tile.State == TileState.Occupied)
+                tile.SetColor(newColor);
+        }
+    }
+
     public void DestroyGrid()
     {
         foreach (var tile in grid)

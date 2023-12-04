@@ -21,6 +21,12 @@ public class Tile : MonoBehaviour
         UpdateDisplay(TileSprite.Pellet);
     }
 
+    public void PlacePowerPellet()
+    {
+        State = TileState.PowerPellet;
+        UpdateDisplay(TileSprite.PowerPellet);
+    }
+
     public void OccupyTile()
     {
         State = TileState.Occupied;
@@ -43,12 +49,18 @@ public class Tile : MonoBehaviour
     {
         spriteRenderer.sprite = TileSpriteHolder.Instance.GetSprite(tileSprite);
     }
+
+    public void SetColor(Color newColor)
+    {
+        spriteRenderer.color = newColor;
+    }
 }
 
 public enum TileState 
 { 
     Empty, 
     Pellet, 
+    PowerPellet,
     Occupied,
     GhostSpace
 }
