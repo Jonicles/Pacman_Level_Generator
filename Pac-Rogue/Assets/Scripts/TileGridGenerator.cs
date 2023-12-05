@@ -175,7 +175,6 @@ public class TileGridGenerator : MonoBehaviour
         return grid;
     }
 
-
     private TileGroup[,] GenerateTileGroups(int width, int height)
     {
         TileGroup[,] tileGroupMatrix = CreateTileGroupMatrix(width, height);
@@ -1548,14 +1547,14 @@ public class TileGridGenerator : MonoBehaviour
             case BORDER_CORNER_SOUTHEAST:
                 if (CheckForDivot(grid, coordinate, BORDER_CORNER_SOUTHEAST, out Direction divotDirection))
                 {
-                    //if (grid.TryGetTile(coordinate + Coordinate.South))
-                    //{
-                    //    if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111001")
-                    //    {
-                    //        sprite = TileSprite.InverseCornerNorthWest;
-                    //        break;
-                    //    }
-                    //}
+                    if (grid.TryGetTile(coordinate + Coordinate.South))
+                    {
+                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHWEST)
+                        {
+                            sprite = TileSprite.InverseCornerNorthWest;
+                            break;
+                        }
+                    }
                     switch (divotDirection)
                     {
                         case Direction.West:
@@ -1575,14 +1574,14 @@ public class TileGridGenerator : MonoBehaviour
             case BORDER_CORNER_SOUTHWEST:
                 if (CheckForDivot(grid, coordinate, BORDER_CORNER_SOUTHWEST, out divotDirection))
                 {
-                    //if (grid.TryGetTile(coordinate + Coordinate.South))
-                    //{
-                    //    if (DetermineTileCode(grid, coordinate + Coordinate.South) == "111111100")
-                    //    {
-                    //        sprite = TileSprite.InverseCornerNorthEast;
-                    //        break;
-                    //    }
-                    //}
+                    if (grid.TryGetTile(coordinate + Coordinate.South))
+                    {
+                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHEAST)
+                        {
+                            sprite = TileSprite.InverseCornerNorthEast;
+                            break;
+                        }
+                    }
 
                     switch (divotDirection)
                     {
@@ -1663,10 +1662,10 @@ public class TileGridGenerator : MonoBehaviour
 
     private void PlacePowerPellets(TileGrid grid)
     {
-        Coordinate topLeftCoordinate = new();
-        Coordinate bottomLeftCoordinate = new();
-        Coordinate topRightCoordinate = new();
-        Coordinate bottomRightCoordinate = new();
+        Coordinate topLeftCoordinate = new(-1, -1);
+        Coordinate bottomLeftCoordinate = new(-1, -1);
+        Coordinate topRightCoordinate = new(-1, -1);
+        Coordinate bottomRightCoordinate = new(-1, -1);
 
         bool bottomLeftTileFound = false;
         bool topLeftTileFound = false;
@@ -1715,13 +1714,13 @@ public class TileGridGenerator : MonoBehaviour
                 break;
         }
 
-        if (grid.TryGetTile(topLeftCoordinate, out Tile topLeftTile))
+        if (grid.TryGetTile(topLeftCoordinate, out Tile topLeftTile) && topLeftTile.State == TileState.Pellet)
             topLeftTile.PlacePowerPellet();
-        if (grid.TryGetTile(topRightCoordinate, out Tile topRightTile))
+        if (grid.TryGetTile(topRightCoordinate, out Tile topRightTile) && topRightTile.State == TileState.Pellet)
             topRightTile.PlacePowerPellet();
-        if (grid.TryGetTile(bottomLeftCoordinate, out Tile bottomLeftTile))
+        if (grid.TryGetTile(bottomLeftCoordinate, out Tile bottomLeftTile) && bottomLeftTile.State == TileState.Pellet)
             bottomLeftTile.PlacePowerPellet();
-        if (grid.TryGetTile(bottomRightCoordinate, out Tile bottomRightTile))
+        if (grid.TryGetTile(bottomRightCoordinate, out Tile bottomRightTile) && bottomRightTile.State == TileState.Pellet)
             bottomRightTile.PlacePowerPellet();
     }
 }

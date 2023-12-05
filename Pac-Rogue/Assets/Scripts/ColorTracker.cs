@@ -15,7 +15,6 @@ public class ColorTracker : MonoBehaviour
         new Color(0.5398438f, 0.1294118f, 1),
         new Color(1, 1, 0.1294118f),
         new Color(1, 0.6587149f, 0.1294118f),
-        new Color(0.1294118f, 1, 1),
     };
     List<Color> availableColors = new List<Color>();
     Color previousColor;
@@ -26,8 +25,8 @@ public class ColorTracker : MonoBehaviour
             PopulateAvailableColors();
 
         Color newColor = previousColor;
-        int index = 0; 
-        
+        int index = 0;
+
         while (newColor == previousColor)
         {
             index = UnityEngine.Random.Range(0, availableColors.Count - 1);
