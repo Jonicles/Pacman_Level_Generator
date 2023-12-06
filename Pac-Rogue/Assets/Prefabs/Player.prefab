@@ -129,6 +129,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0d3e4226ca5b034195baed388e68041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentGrid: {fileID: 0}
-  desiredSpeed: 0.15
-  maxForgiveDistance: 0.5
+  desiredSpeed: 0.12
+  maxForgivenessDistance: 0.5

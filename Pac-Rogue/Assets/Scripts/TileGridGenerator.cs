@@ -5,13 +5,12 @@ using System.Linq;
 public class TileGridGenerator : MonoBehaviour
 {
     [SerializeField] GameObject tilePrefab;
-    [SerializeField] int desiredWidth = 15;
-    [SerializeField] int desiredHeight = 15;
+    const int width = 28;
+    const int height = 31;
 
     const int tileGroupDimension = 3;
     TileGrid currentGrid;
     ColorTracker colorTracker;
-
     bool StartInfinity = false;
 
     //Indexes for tile code, a 1 represent an occupied tile and a 0 an empty or pellet tile
@@ -101,49 +100,49 @@ public class TileGridGenerator : MonoBehaviour
             colorTracker = tracker;
         else
             colorTracker = gameObject.AddComponent<ColorTracker>();
-            
+
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (currentGrid != null)
-            {
-                currentGrid.DestroyGrid();
-            }
-            currentGrid = GenerateGrid(desiredWidth, desiredHeight);
-        }
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    if (currentGrid != null)
+        //    {
+        //        currentGrid.DestroyGrid();
+        //    }
+        //    currentGrid = GenerateGrid(width, height);
+        //}
 
-        if (Input.GetKeyDown(KeyCode.LeftAlt))
-            StartInfinity = true;
+        //if (Input.GetKeyDown(KeyCode.LeftAlt))
+        //    StartInfinity = true;
 
 
-        if (StartInfinity)
-        {
-            if (currentGrid != null)
-            {
-                currentGrid.DestroyGrid();
-            }
-            currentGrid = GenerateGrid(desiredWidth, desiredHeight);
-        }
+        //if (StartInfinity)
+        //{
+        //    if (currentGrid != null)
+        //    {
+        //        currentGrid.DestroyGrid();
+        //    }
+        //    currentGrid = GenerateGrid(width, height);
+        //}
     }
-    public TileGrid GenerateGrid(int desiredWidth, int desiredHeight)
+    public TileGrid GenerateGrid()
     {
-        //Width always has to be even 
-        if (desiredWidth % 2 != 0)
-            desiredWidth--;
-        //Height always has to be odd for ghost box
-        if (desiredHeight % 2 == 0)
-            desiredHeight--;
+        ////Width always has to be even 
+        //if (desiredWidth % 2 != 0)
+        //    desiredWidth--;
+        ////Height always has to be odd for ghost box
+        //if (desiredHeight % 2 == 0)
+        //    desiredHeight--;
 
         //When we divide with two integers it is automatically "floored", fractions are thrown away.
-        int groupWidth = (int)MathF.Floor(desiredWidth / tileGroupDimension * 0.5f);
-        int groupHeight = (int)MathF.Floor((float)desiredHeight / (float)tileGroupDimension);
+        int groupWidth = (int)MathF.Floor(width / tileGroupDimension * 0.5f);
+        int groupHeight = (int)MathF.Floor((float)height / (float)tileGroupDimension);
 
         TileGroup[,] tileGroupMatrix = GenerateTileGroups(groupWidth, groupHeight);
-
-        TileGrid grid = InstantiateTiles(desiredWidth, desiredHeight);
+        
+        TileGrid grid = InstantiateTiles(width, height);
 
         TransformTileStates(grid, tileGroupMatrix);
 
@@ -419,6 +418,10 @@ public class TileGridGenerator : MonoBehaviour
     {
         return new Coordinate((grid.GetLength(0) - 1) - x, y);
     }
+    private Coordinate GetMirroredCoordinate(TileGrid grid, Coordinate coordinate)
+    {
+        return new Coordinate((grid.GetLength(0) - 1) - coordinate.X, coordinate.Y);
+    }
 
     private void CreateGhostBox(TileGrid grid)
     {
@@ -429,7 +432,7 @@ public class TileGridGenerator : MonoBehaviour
 
         int ghostBoxHeight = box.height;
         int ghostBoxWidth = box.width;
-        int ghostBoxHalfHeight = (ghostBoxHeight - 1) / 2 ;
+        int ghostBoxHalfHeight = (ghostBoxHeight - 1) / 2;
         int ghostBoxHalfWidth = ghostBoxWidth / 2;
 
         Coordinate startCoordinate = new(halfWidth - ghostBoxHalfWidth, halfHeight - ghostBoxHalfHeight + 1);
@@ -630,6 +633,7 @@ public class TileGridGenerator : MonoBehaviour
                     }
                 }
             }
+
         } while (reUpdate);
     }
     private void AddPelletsToHeight(TileGrid grid)
@@ -1200,7 +1204,6 @@ public class TileGridGenerator : MonoBehaviour
 
             if (!grid.TryGetTile(coordinateToCheck))
                 reachedOtherSide = true;
-
         } while (!reachedOtherSide);
 
         borderCoordinate = new();
@@ -1330,7 +1333,7 @@ public class TileGridGenerator : MonoBehaviour
         bool divot = false;
 
         if (corner)
-            divot = CheckCornerDivot(grid, horizontalDirection, verticalDirection, horizontalCoordinate, verticalCoordinate, out divotDirection);
+            divot = CheckCornerDivot(grid, code, horizontalDirection, verticalDirection, horizontalCoordinate, verticalCoordinate, out divotDirection);
         else
             divot = CheckEdgeDivot(grid, code, verticalCoordinate, out divotDirection);
 
@@ -1410,7 +1413,7 @@ public class TileGridGenerator : MonoBehaviour
 
         return divot;
     }
-    private bool CheckCornerDivot(TileGrid grid, Direction horizontalDirection, Direction verticalDirection, Coordinate horizontalCoordinate, Coordinate verticalCoordinate, out Direction divotDirection)
+    private bool CheckCornerDivot(TileGrid grid, string code, Direction horizontalDirection, Direction verticalDirection, Coordinate horizontalCoordinate, Coordinate verticalCoordinate, out Direction divotDirection)
     {
         bool divot = false;
         divotDirection = Direction.North;
@@ -1437,8 +1440,8 @@ public class TileGridGenerator : MonoBehaviour
             string verticalCode = DetermineTileCode(grid, verticalCoordinate);
 
             bool adjacentCorner = verticalCode == BORDER_CORNER_NORTHWEST || verticalCode == BORDER_CORNER_NORTHEAST || verticalCode == BORDER_CORNER_SOUTHWEST || verticalCode == BORDER_CORNER_SOUTHEAST;
-            bool adjacentEdgeNorth = verticalCode == "100011111" || verticalCode == "110011111" || verticalCode == "100111111";
-            bool adjacentEdgeSouth = verticalCode == "111111000" || verticalCode == "111111100" || verticalCode == "111111001";
+            bool adjacentEdgeNorth = verticalCode == BORDER_EDGE_NORTH_1 || verticalCode == BORDER_EDGE_NORTH_2 || verticalCode == BORDER_EDGE_NORTH_3;
+            bool adjacentEdgeSouth = verticalCode == BORDER_EDGE_SOUTH_1 || verticalCode == BORDER_EDGE_SOUTH_2 || verticalCode == BORDER_EDGE_SOUTH_3;
 
 
             if (adjacentCorner || adjacentEdgeNorth || adjacentEdgeSouth)
@@ -1549,12 +1552,29 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (grid.TryGetTile(coordinate + Coordinate.South))
                     {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHWEST)
+                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_EDGE_NORTH_3)
                         {
                             sprite = TileSprite.InverseCornerNorthWest;
                             break;
                         }
+                        else if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHWEST)
+                        {
+                            if (divotDirection == Direction.North)
+                            {
+                                sprite = TileSprite.InverseCornerNorthWest;
+                                break;
+                            }
+                            else if (divotDirection == Direction.West)
+                            {
+                                if (DetermineTileCode(grid, coordinate + Coordinate.West) != CORNER_NORTHWEST_3)
+                                {
+                                    sprite = TileSprite.BorderCornerSouthEast;
+                                    break;
+                                }
+                            }
+                        }
                     }
+
                     switch (divotDirection)
                     {
                         case Direction.West:
@@ -1576,10 +1596,26 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (grid.TryGetTile(coordinate + Coordinate.South))
                     {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHEAST)
+                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_EDGE_NORTH_2)
                         {
                             sprite = TileSprite.InverseCornerNorthEast;
                             break;
+                        }
+                        else if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_CORNER_NORTHEAST)
+                        {
+                            if (divotDirection == Direction.North)
+                            {
+                                sprite = TileSprite.InverseCornerNorthEast;
+                                break;
+                            }
+                            else if (divotDirection == Direction.East)
+                            {
+                                if (DetermineTileCode(grid, coordinate + Coordinate.East) != CORNER_NORTHEAST_3)
+                                {
+                                    sprite = TileSprite.BorderCornerSouthWest;
+                                    break;
+                                }
+                            }
                         }
                     }
 
@@ -1602,14 +1638,31 @@ public class TileGridGenerator : MonoBehaviour
             case BORDER_CORNER_NORTHWEST:
                 if (CheckForDivot(grid, coordinate, BORDER_CORNER_NORTHWEST, out divotDirection))
                 {
-                    //if (grid.TryGetTile(coordinate + Coordinate.North))
-                    //{
-                    //    if (DetermineTileCode(grid, coordinate + Coordinate.North) == "110011111")
-                    //    {
-                    //        sprite = TileSprite.InverseCornerSouthEast;
-                    //        break;
-                    //    }
-                    //}
+                    if (grid.TryGetTile(coordinate + Coordinate.North))
+                    {
+                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_2)
+                        {
+                            sprite = TileSprite.InverseCornerSouthEast;
+                            break;
+                        }
+                        else if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_CORNER_SOUTHEAST)
+                        {
+                            if (divotDirection == Direction.South)
+                            {
+                                sprite = TileSprite.InverseCornerSouthEast;
+                                break;
+                            }
+                            else if (divotDirection == Direction.East)
+                            {
+                                if (DetermineTileCode(grid, coordinate + Coordinate.East) != CORNER_SOUTHEAST_3)
+                                {
+                                    sprite = TileSprite.BorderCornerNorthWest;
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
                     switch (divotDirection)
                     {
                         case Direction.East:
@@ -1629,14 +1682,31 @@ public class TileGridGenerator : MonoBehaviour
             case BORDER_CORNER_NORTHEAST:
                 if (CheckForDivot(grid, coordinate, BORDER_CORNER_NORTHEAST, out divotDirection))
                 {
-                    //if (grid.TryGetTile(coordinate + Coordinate.North))
-                    //{
-                    //    if (DetermineTileCode(grid, coordinate + Coordinate.North) == "100111111")
-                    //    {
-                    //        sprite = TileSprite.InverseCornerSouthWest;
-                    //        break;
-                    //    }
-                    //}
+                    if (grid.TryGetTile(coordinate + Coordinate.North))
+                    {
+                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_3)
+                        {
+                            sprite = TileSprite.InverseCornerSouthWest;
+                            break;
+                        }
+                        else if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_CORNER_SOUTHWEST)
+                        {
+                            if (divotDirection == Direction.South)
+                            {
+                                sprite = TileSprite.InverseCornerSouthWest;
+                                break;
+                            }
+                            else if (divotDirection == Direction.West)
+                            {
+                                if (DetermineTileCode(grid, coordinate + Coordinate.West) != CORNER_SOUTHWEST_3)
+                                {
+                                    sprite = TileSprite.BorderCornerNorthEast;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     switch (divotDirection)
                     {
                         case Direction.West:
@@ -1667,14 +1737,14 @@ public class TileGridGenerator : MonoBehaviour
         Coordinate topRightCoordinate = new(-1, -1);
         Coordinate bottomRightCoordinate = new(-1, -1);
 
-        bool bottomLeftTileFound = false;
-        bool topLeftTileFound = false;
+        bool bottomTilesFound = false;
+        bool topTilesFound = false;
 
         for (int y = 0; y < grid.GetLength(1); y++)
         {
             for (int x = 0; x < grid.GetLength(0); x++)
             {
-                Coordinate currentCoordinate = new Coordinate(x, y);
+                Coordinate currentCoordinate = new Coordinate(x, y + 3);
 
                 if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
                     continue;
@@ -1682,13 +1752,13 @@ public class TileGridGenerator : MonoBehaviour
                 if (currentTile.State != TileState.Pellet)
                     continue;
 
-                bottomLeftCoordinate = currentCoordinate + new Coordinate(0, 3);
-                bottomRightCoordinate = GetMirroredCoordinate(grid, x, y + 3);
-                bottomLeftTileFound = true;
+                bottomLeftCoordinate = currentCoordinate;
+                bottomRightCoordinate = GetMirroredCoordinate(grid, bottomLeftCoordinate);
+                bottomTilesFound = true;
                 break;
             }
 
-            if (bottomLeftTileFound == true)
+            if (bottomTilesFound == true)
                 break;
         }
 
@@ -1696,7 +1766,7 @@ public class TileGridGenerator : MonoBehaviour
         {
             for (int x = 0; x < grid.GetLength(0); x++)
             {
-                Coordinate currentCoordinate = new Coordinate(x, y);
+                Coordinate currentCoordinate = new Coordinate(x, y - 4);
 
                 if (!grid.TryGetTile(currentCoordinate, out Tile currentTile))
                     continue;
@@ -1704,13 +1774,13 @@ public class TileGridGenerator : MonoBehaviour
                 if (currentTile.State != TileState.Pellet)
                     continue;
 
-                topLeftCoordinate = currentCoordinate + new Coordinate(0, -3);
-                topRightCoordinate = GetMirroredCoordinate(grid, x, y - 3);
-                topLeftTileFound = true;
+                topLeftCoordinate = currentCoordinate;
+                topRightCoordinate = GetMirroredCoordinate(grid, topLeftCoordinate);
+                topTilesFound = true;
                 break;
             }
 
-            if (topLeftTileFound == true)
+            if (topTilesFound == true)
                 break;
         }
 

@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] TileGridGenerator currentGrid;
+    [SerializeField] TileGrid currentGrid;
     [SerializeField] float desiredSpeed = 0.1f;
     [SerializeField][Range(0.1f, 1)] float maxForgivenessDistance = 1;
     Coroutine moveRoutine;
@@ -15,12 +15,18 @@ public class PlayerController : MonoBehaviour
     Vector2 currentDirection = Vector2.left;
     Coordinate currentCoordinate = new Coordinate(0, 0);
 
-    void Start()
+    bool active = false;
+
+    private void Awake()
     {
         ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
     }
+
     void Update()
     {
+        if (!active)
+            return;
+
         if (desiredDirection != currentDirection)
         {
             if (CheckDesiredCoordinate(desiredDirection, out Coordinate desiredCoordinate))
@@ -56,11 +62,11 @@ public class PlayerController : MonoBehaviour
     {
         desiredCoordinate = GetNextCoordinate(direction);
 
-        //if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
-        //    return false;
+        if (!currentGrid.TryGetTile(desiredCoordinate, out Tile desiredTile))
+            return false;
 
-        //if (desiredTile.State == TileState.Occupied)
-        //    return false;
+        if (desiredTile.State == TileState.Occupied || desiredTile.State == TileState.GhostSpace)
+            return false;
 
         return true;
     }
@@ -101,6 +107,36 @@ public class PlayerController : MonoBehaviour
 
         transform.position = endPos;
         currentCoordinate = nextCoordinate;
+        if (currentGrid.TryGetTile(currentCoordinate, out Tile currentTile))
+            currentTile.Collect();
+
         moveRoutine = null;
+    }
+
+    public void SetPosition(Coordinate coordinate)
+    {
+        currentCoordinate = coordinate;
+        transform.position = new Vector2(coordinate.X, coordinate.Y);
+    }
+
+    public void SetGrid(TileGrid grid)
+    {
+        currentGrid = grid;
+    }
+
+    public void Activate()
+    {
+        active = true;
+    }
+
+    public void Deactivate()
+    {
+        active = false;
+
+        desiredDirection = Vector2.left;
+        currentDirection = Vector2.right;
+
+        if (moveRoutine != null)
+            StopCoroutine(moveRoutine);
     }
 }

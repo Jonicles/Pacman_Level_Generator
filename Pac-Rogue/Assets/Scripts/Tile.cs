@@ -27,6 +27,11 @@ public class Tile : MonoBehaviour
         UpdateDisplay(TileSprite.PowerPellet);
     }
 
+    public void Collect()
+    {
+        EmptyTile();
+    }
+
     public void OccupyTile()
     {
         State = TileState.Occupied;
