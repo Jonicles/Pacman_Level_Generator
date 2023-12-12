@@ -94,6 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4352366155575549714}
   - component: {fileID: 4352366155575549715}
+  - component: {fileID: 6903101957074000352}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -129,5 +130,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0d3e4226ca5b034195baed388e68041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  desiredSpeed: 0.12
-  maxForgivenessDistance: 0.5
+  speedBetweenTiles: 0.13
+  forgivenessDistance: 0.5
+--- !u!114 &6903101957074000352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4352366155575549712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f37d43602a26cab4cbace40919b1b6e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mouthOpenWideUp: {fileID: 256011418, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenUp: {fileID: -750168504, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenWideDown: {fileID: -877028403, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenDown: {fileID: 406145536, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenWideRight: {fileID: -1956286091, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenRight: {fileID: 725718227, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenWideLeft: {fileID: 1408158032, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthOpenLeft: {fileID: -2141289375, guid: 342c1fee027951b479805e93444e0226, type: 3}
+  mouthClosed: {fileID: 2113197776, guid: 342c1fee027951b479805e93444e0226, type: 3}

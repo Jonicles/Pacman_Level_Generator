@@ -7,19 +7,49 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] TileGrid currentGrid;
-    [SerializeField] float desiredSpeed = 0.1f;
-    [SerializeField][Range(0.1f, 1)] float maxForgivenessDistance = 1;
-    Coroutine moveRoutine;
 
-    Vector2 desiredDirection = Vector2.left;
-    Vector2 currentDirection = Vector2.left;
+    [SerializeField] float speedBetweenTiles = 0.1f;
+    [SerializeField][Range(0.1f, 1)] float forgivenessDistance = 1;
+
+    Coroutine moveRoutine;
+    PlayerSpriteHandler spriteHandler;
+
     Coordinate currentCoordinate = new Coordinate(0, 0);
+    
+    Direction desiredDirection = Direction.West;
+    Direction currentDirection = Direction.West;
 
     bool active = false;
+    const float mouthOpenWideDistance = 0.7f;
+    const float mouthCloseDistance = 0.3f;
 
     private void Awake()
     {
-        ActionMapManager.playerInput.InGame.Move.performed += ChangeDirection;
+        ActionMapManager.playerInput.InGame.MoveUp.performed += UpPressed;
+        ActionMapManager.playerInput.InGame.MoveDown.performed += DownPressed;
+        ActionMapManager.playerInput.InGame.MoveLeft.performed += LeftPressed;
+        ActionMapManager.playerInput.InGame.MoveRight.performed += RightPressed;
+
+        if (!TryGetComponent(out spriteHandler))
+            Debug.LogError("Sprite handler component is missing from player prefab");
+    }
+
+
+    private void UpPressed(InputAction.CallbackContext context)
+    {
+        desiredDirection = Direction.North;
+    }
+    private void DownPressed(InputAction.CallbackContext context)
+    {
+        desiredDirection = Direction.South;
+    }
+    private void LeftPressed(InputAction.CallbackContext context)
+    {
+        desiredDirection = Direction.West;
+    }
+    private void RightPressed(InputAction.CallbackContext context)
+    {
+        desiredDirection = Direction.East;
     }
 
     void Update()
@@ -34,7 +64,7 @@ public class PlayerController : MonoBehaviour
                 Vector2 currentPosition = transform.position;
                 float distanceToPreviousTile = Vector2.Distance(currentPosition, new Vector2(currentCoordinate.X, currentCoordinate.Y));
 
-                if (distanceToPreviousTile <= maxForgivenessDistance)
+                if (distanceToPreviousTile <= forgivenessDistance)
                 {
                     //If all these condtitions are met we will begin moving the player to the desired tile
 
@@ -45,6 +75,7 @@ public class PlayerController : MonoBehaviour
                     }
 
                     currentDirection = desiredDirection;
+                    spriteHandler.ChangeDirection(currentDirection);
                     StartMove(desiredCoordinate);
                     return;
                 }
@@ -58,7 +89,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    bool CheckDesiredCoordinate(Vector2 direction, out Coordinate desiredCoordinate)
+    bool CheckDesiredCoordinate(Direction direction, out Coordinate desiredCoordinate)
     {
         desiredCoordinate = GetNextCoordinate(direction);
 
@@ -71,28 +102,24 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    void ChangeDirection(InputAction.CallbackContext context)
-    {
-        desiredDirection = context.ReadValue<Vector2>();
-        desiredDirection.Normalize();
-    }
-    Coordinate GetNextCoordinate(Vector2 direction)
+    Coordinate GetNextCoordinate(Direction direction)
     {
         //We will round up y direction just so that it will take priority over the x direction.
         //So if the player is pushing several direction at one time it will prioritize the vertical directions
-        return new Coordinate(currentCoordinate.X + (int)direction.x, currentCoordinate.Y + (int)Math.Round(direction.y));
+        return currentCoordinate + Coordinate.GetCoordinateFromDirection(direction);
     }
     void StartMove(Coordinate nextCoordinate)
     {
         if (moveRoutine == null)
         {
+            spriteHandler.OpenMouth();
             moveRoutine = StartCoroutine(Move(nextCoordinate));
         }
     }
     IEnumerator Move(Coordinate nextCoordinate)
     {
         float distanceMultiplier = Vector2.Distance(transform.position, new Vector2(nextCoordinate.X, nextCoordinate.Y));
-        float speed = desiredSpeed * distanceMultiplier;
+        float speed = speedBetweenTiles * distanceMultiplier;
         float elapsedTime = 0;
 
         Vector2 startPos = transform.position;
@@ -101,12 +128,22 @@ public class PlayerController : MonoBehaviour
         while (speed > elapsedTime)
         {
             transform.position = Vector2.Lerp(startPos, endPos, elapsedTime / speed);
+
+            float currentDistance = Vector2.Distance(transform.position, endPos);
+
+            if (currentDistance < mouthOpenWideDistance && currentDistance > mouthCloseDistance)
+                spriteHandler.OpenMouthWide();
+            else if (currentDistance < mouthCloseDistance)
+                spriteHandler.CloseMouth();
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
         transform.position = endPos;
         currentCoordinate = nextCoordinate;
+        spriteHandler.OpenMouth();
+
         if (currentGrid.TryGetTile(currentCoordinate, out Tile currentTile))
             currentTile.Collect();
 
@@ -133,10 +170,19 @@ public class PlayerController : MonoBehaviour
     {
         active = false;
 
-        desiredDirection = Vector2.left;
-        currentDirection = Vector2.right;
+        desiredDirection = Direction.West;
+        currentDirection = Direction.East;
 
         if (moveRoutine != null)
             StopCoroutine(moveRoutine);
+    }
+
+    private void OnDisable()
+    {
+        ActionMapManager.playerInput.InGame.MoveUp.performed -= UpPressed;
+        ActionMapManager.playerInput.InGame.MoveDown.performed -= DownPressed;
+        ActionMapManager.playerInput.InGame.MoveLeft.performed -= LeftPressed;
+        ActionMapManager.playerInput.InGame.MoveRight.performed -= RightPressed;
+
     }
 }
