@@ -7,7 +7,7 @@ public class GhostBox
 {
     public readonly int width = 14;
     public readonly int height = 11;
-    public readonly Dictionary<Coordinate, Tuple<TileState, TileSprite>> dict = new()
+    public readonly Dictionary<Coordinate, Tuple<TileState, TileSprite>> GhostBoxDefintion = new()
     {   //Column 1
         { new Coordinate(0,0), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.Occupied) },
         { new Coordinate(0,1), new Tuple<TileState, TileSprite>(TileState.Occupied, TileSprite.Occupied) },

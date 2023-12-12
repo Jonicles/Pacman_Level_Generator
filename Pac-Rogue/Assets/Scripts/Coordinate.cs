@@ -91,4 +91,9 @@ public struct Coordinate
         return (coordinate.X == this.X && coordinate.Y == this.Y);
 
     }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

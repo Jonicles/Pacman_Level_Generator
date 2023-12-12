@@ -12,6 +12,7 @@ public class Tile : MonoBehaviour
     {
         if (!TryGetComponent(out spriteRenderer))
             Debug.LogWarning("There is no Sprite Renderer attached to Tile prefab");
+        
         State = TileState.Empty;
     }
 
