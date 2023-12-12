@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 2452614400046322513}
   - component: {fileID: 2452614400046322512}
   - component: {fileID: 2452614400046322514}
+  - component: {fileID: 8122121}
+  - component: {fileID: 8122122}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -46,8 +48,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 5624841436075038315, guid: b253ffa4f0bd11a47ab7b4b42b72eb1e, type: 3}
-  desiredWidth: 28
-  desiredHeight: 31
 --- !u!114 &2452614400046322514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,6 +62,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   emptySprite: {fileID: 21300000, guid: d35b1d33209a3f84eaf8c5f4eea192d0, type: 3}
   pelletSprite: {fileID: 21300000, guid: 9868a963bf8e2bd49800114cbda2dd43, type: 3}
+  powerPelletSprite: {fileID: 21300000, guid: 01b6ef1771898de4e82678b0d75773e9, type: 3}
   occupiedSprite: {fileID: 21300000, guid: d35b1d33209a3f84eaf8c5f4eea192d0, type: 3}
   edgeNorthSprite: {fileID: 21300000, guid: f57502d67f9ad4a448c0873d5eceba9e, type: 3}
   edgeSouthSprite: {fileID: 21300000, guid: 6ae843a2fabd1064dbac523d524de3aa, type: 3}
@@ -102,3 +103,28 @@ MonoBehaviour:
   ghostCornerNorthWestSprite: {fileID: 21300000, guid: 6f0507263e3c2a447b87e4f5c5495f0a, type: 3}
   ghostCornerSouthEastSprite: {fileID: 21300000, guid: ca2a9988eed850e4285dc7c42c4547ec, type: 3}
   ghostCornerSouthWestSprite: {fileID: 21300000, guid: a80542ae8f774e742840fbdb571918f7, type: 3}
+--- !u!114 &8122121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452614400046322511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07defa9906493154d85c0e34eddb0bfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 4352366155575549712, guid: b989b0c71070e2941b952ba573f391d3, type: 3}
+--- !u!114 &8122122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2452614400046322511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f40782b811f46024b9ed0162c0662015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
