@@ -17,6 +17,12 @@ public class GameManager : MonoBehaviour
             Debug.LogError("No generator on game manager object");
     }
 
+    private void Start()
+    {
+        GenerateNewLevel();
+    }
+
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))

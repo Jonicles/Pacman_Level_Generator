@@ -111,7 +111,7 @@ public class TileGridGenerator : MonoBehaviour
 
         //When we divide with two integers it is automatically "floored", fractions are thrown away.
         int groupWidth = (int)MathF.Floor(width / tileGroupDimension * 0.5f);
-        int groupHeight = (int)MathF.Floor((float)height / (float)tileGroupDimension);
+        int groupHeight = (int)MathF.Floor(height / tileGroupDimension);
 
         TileGroup[,] tileGroupMatrix = GenerateTileGroups(groupWidth, groupHeight);
 
@@ -317,14 +317,9 @@ public class TileGridGenerator : MonoBehaviour
                             continue;
 
                         if (boolArray[k, l])
-                        {
                             tileComponent.PlacePellet();
-                            grid.PelletAmount++;
-                        }
                         else
-                        {
                             tileComponent.OccupyTile();
-                        }
                     }
                 }
             }
@@ -361,7 +356,6 @@ public class TileGridGenerator : MonoBehaviour
                         break;
                     case TileState.Pellet:
                         newTile.PlacePellet();
-                        grid.PelletAmount++;
                         break;
                     case TileState.Occupied:
                         newTile.OccupyTile();
