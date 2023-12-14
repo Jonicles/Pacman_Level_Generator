@@ -5,8 +5,8 @@ using System.Linq;
 public class TileGridGenerator : MonoBehaviour
 {
     [SerializeField] GameObject tilePrefab;
-    const int width = 28;
-    const int height = 31;
+    [SerializeField] int width = 22;
+    [SerializeField] int height = 31;
 
     const int tileGroupDimension = 3;
     ColorTracker colorTracker;
@@ -307,9 +307,9 @@ public class TileGridGenerator : MonoBehaviour
             {
                 bool[,] boolArray = TileShapeRules.GetShapeDefinition(tileGroupMatrix[i, j].DefiniteShape);
 
-                for (int k = 0; k < 3; k++)
+                for (int k = 0; k < tileGroupDimension; k++)
                 {
-                    for (int l = 0; l < 3; l++)
+                    for (int l = 0; l < tileGroupDimension; l++)
                     {
                         Coordinate tileCoordinate = new(k + (i * tileGroupDimension), l + (j * tileGroupDimension));
 
@@ -423,6 +423,11 @@ public class TileGridGenerator : MonoBehaviour
             }
         }
 
+        CreatePathsToGhostBox(grid, ghostBoxHeight, ghostBoxWidth, startCoordinate);
+    }
+
+    private void CreatePathsToGhostBox(TileGrid grid, int ghostBoxHeight, int ghostBoxWidth, Coordinate startCoordinate)
+    {
         for (int i = 0; i < ghostBoxWidth; i++)
         {
             for (int j = 0; j < ghostBoxHeight; j++)
@@ -764,13 +769,18 @@ public class TileGridGenerator : MonoBehaviour
 
         foreach (KeyValuePair<Coordinate, Tile> tileToEmpty in tilesToEmpty)
         {
-            if (tileToEmpty.Key == new Coordinate(10, 15) ||
-                tileToEmpty.Key == new Coordinate(10, 16) ||
-                tileToEmpty.Key == new Coordinate(10, 17) ||
-                tileToEmpty.Key == new Coordinate(17, 15) ||
-                tileToEmpty.Key == new Coordinate(17, 16) ||
-                tileToEmpty.Key == new Coordinate(17, 17))
+            bool ghostTile = (grid.TryGetTile(tileToEmpty.Key + Coordinate.East, out Tile eastTile) && eastTile.State == TileState.GhostSpace) || 
+                (grid.TryGetTile(tileToEmpty.Key + Coordinate.West, out Tile westTile) && westTile.State == TileState.GhostSpace);
+
+            if (ghostTile)
                 continue;
+            //if (tileToEmpty.Key == new Coordinate(10, 15) ||
+            //    tileToEmpty.Key == new Coordinate(10, 16) ||
+            //    tileToEmpty.Key == new Coordinate(10, 17) ||
+            //    tileToEmpty.Key == new Coordinate(17, 15) ||
+            //    tileToEmpty.Key == new Coordinate(17, 16) ||
+            //    tileToEmpty.Key == new Coordinate(17, 17))
+            //    continue;
 
             tileToEmpty.Value.EmptyTile();
         }
@@ -1494,7 +1504,7 @@ public class TileGridGenerator : MonoBehaviour
             case BORDER_CORNER_SOUTHEAST:
                 if (CheckForDivot(grid, coordinate, BORDER_CORNER_SOUTHEAST, out Direction divotDirection))
                 {
-                    if (grid.TryGetTile(coordinate + Coordinate.South))
+                    if (grid.TryGetTile(coordinate + Coordinate.South) && DetermineTileCode(grid, coordinate + Coordinate.SouthEast) != BORDER_CORNER_NORTHEAST)
                     {
                         if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_EDGE_NORTH_3)
                         {
@@ -1540,7 +1550,7 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (grid.TryGetTile(coordinate + Coordinate.South))
                     {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_EDGE_NORTH_2)
+                        if (DetermineTileCode(grid, coordinate + Coordinate.South) == BORDER_EDGE_NORTH_2 && DetermineTileCode(grid, coordinate + Coordinate.SouthWest) != BORDER_CORNER_NORTHWEST)
                         {
                             sprite = TileSprite.InverseCornerNorthEast;
                             break;
@@ -1584,7 +1594,7 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (grid.TryGetTile(coordinate + Coordinate.North))
                     {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_2)
+                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_2 && DetermineTileCode(grid, coordinate + Coordinate.NorthWest) != BORDER_CORNER_SOUTHWEST)
                         {
                             sprite = TileSprite.InverseCornerSouthEast;
                             break;
@@ -1628,7 +1638,7 @@ public class TileGridGenerator : MonoBehaviour
                 {
                     if (grid.TryGetTile(coordinate + Coordinate.North))
                     {
-                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_3)
+                        if (DetermineTileCode(grid, coordinate + Coordinate.North) == BORDER_EDGE_SOUTH_3 && DetermineTileCode(grid, coordinate + Coordinate.NorthEast) != BORDER_CORNER_SOUTHEAST)
                         {
                             sprite = TileSprite.InverseCornerSouthWest;
                             break;

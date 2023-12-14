@@ -26,20 +26,6 @@ public class TileGroup
     public TileGroup()
     {
         AvailableShapes = new List<TileGroupShape>((TileGroupShape[])Enum.GetValues(typeof(TileGroupShape)));
-        //AvailableShapes = new List<TileGroupShape>();
-        //AvailableShapes.Add(TileGroupShape.Plus);
-        //AvailableShapes.Add(TileGroupShape.TriangleUp);
-        //AvailableShapes.Add(TileGroupShape.TriangleDown);
-        //AvailableShapes.Add(TileGroupShape.TriangleRight);
-        //AvailableShapes.Add(TileGroupShape.TriangleLeft);
-        //AvailableShapes.Add(TileGroupShape.CornerUpRight);
-        //AvailableShapes.Add(TileGroupShape.CornerDownRight);
-        //AvailableShapes.Add(TileGroupShape.CornerUpLeft);
-        //AvailableShapes.Add(TileGroupShape.CornerDownLeft);
-        //AvailableShapes.Add(TileGroupShape.VerticalLine);
-        //AvailableShapes.Add(TileGroupShape.HorizontalLine);
-        //AvailableShapes.Add(TileGroupShape.Empty);
-
     }
 
     public void RemoveAvailableShapes(TileGroupShape[] shapes)
